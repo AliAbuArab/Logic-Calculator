@@ -9,6 +9,9 @@ let app = new Vue({
   },
   watch: {},
   methods: {
+    addSymbol(e) {
+      this.input += e.srcElement.innerText;
+    },
     moveDDlist(e) {
       e = e.srcElement;
       this.showDropDownList = true;
@@ -19,7 +22,10 @@ let app = new Vue({
       dropDownList.setAttribute("style", str);
     },
     hideDropDownList() {
-      this.showDropDownList = false;
+      //this.showDropDownList = false;
+    },
+    showDropDownList() {
+      this.showDropDownList = true;
     }
   }
 });

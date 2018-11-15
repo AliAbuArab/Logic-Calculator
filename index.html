@@ -30,11 +30,29 @@
               />
               <br />
               <div id="popup" v-show="showDropDownList">
-                <ul class="list-group">
-                  <li class="list-group-item">(</li>
-                  <li class="list-group-item">)</li>
-                  <li class="list-group-item">-></li>
-                </ul>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    @click="addSymbol"
+                  >
+                    (
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    @click="addSymbol"
+                  >
+                    )
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    @click="addSymbol"
+                  >
+                    ->
+                  </button>
+                </div>
               </div>
             </div>
           </div>
