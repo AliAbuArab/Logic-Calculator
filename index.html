@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Logical Calculator</title>
     <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
   </head>
 
   <body>
@@ -18,14 +19,23 @@
       <div class="container">
         <div class="row">
           <div class="col-12">
-            <div class="input-group input-group-lg w-75 mx-auto">
+            <div class="input-group-lg mx-auto">
               <input
+                id="input"
                 type="text"
-                class="form-control"
-                aria-label="Sizing example input"
-                aria-describedby="inputGroup-sizing-lg"
+                class="form-control text-center"
+                @input="moveDDlist"
+                @blur="hideDropDownList"
                 v-model="input"
               />
+              <br />
+              <div id="popup" v-show="showDropDownList">
+                <ul class="list-group">
+                  <li class="list-group-item">(</li>
+                  <li class="list-group-item">)</li>
+                  <li class="list-group-item">-></li>
+                </ul>
+              </div>
             </div>
           </div>
           <div class="col-12">{{ input }}</div>
@@ -33,10 +43,6 @@
       </div>
     </div>
   </body>
-  <script
-    sync
-    defer
-    src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"
-  ></script>
+  <script sync defer src="js/vue.min.js"></script>
   <script sync defer src="js/app.js"></script>
 </html>

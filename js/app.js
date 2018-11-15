@@ -4,6 +4,22 @@ let app = new Vue({
     title: "Logical Calculator",
     greeting: "Welcome to Telhai's Logical Calculator",
     message: "Hello Vue!",
-    input: "Write something"
+    input: "",
+    showDropDownList: false
+  },
+  watch: {},
+  methods: {
+    moveDDlist(e) {
+      e = e.srcElement;
+      this.showDropDownList = true;
+      let startPosition = e.selectionStart;
+      let str = "left: " + (e.offsetWidth + startPosition * 10) / 2 + "px;";
+      str += "top: " + e.offsetHeight + "px;";
+      let dropDownList = document.getElementById("popup");
+      dropDownList.setAttribute("style", str);
+    },
+    hideDropDownList() {
+      this.showDropDownList = false;
+    }
   }
 });
