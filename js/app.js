@@ -4,28 +4,40 @@ let app = new Vue({
     title: "Logical Calculator",
     greeting: "Welcome to Telhai's Logical Calculator",
     message: "Hello Vue!",
-    input: "",
-    showDropDownList: false
+    verse: ""
   },
-  watch: {},
+  watch: {
+    verse() {
+      this.isBalanced();
+    }
+  },
   methods: {
+    isBalanced() {
+      if (this.verse === null) console.log("Balanced");
+      let expression = this.verse.split("");
+      let stack = [];
+      for (let i = 0; i < expression.length; i++) {
+        if (expression[i] === "(" || expression[i] === ")") {
+          if (expression[i] === "(") {
+            stack.push(expression[i]);
+          } else {
+            if (stack.length === 0) {
+              console.log("Not Balanced");
+              return;
+            }
+            let top = stack.pop();
+            if (top === "(" && expression[i] !== ")")
+              console.log("Not Balanced");
+          }
+        }
+      }
+      stack.length === 0 ? console.log("Balanced") : console.log("Not Balanced");
+    },
     addSymbol(e) {
-      this.input += e.srcElement.innerText;
-    },
-    moveDDlist(e) {
-      e = e.srcElement;
-      this.showDropDownList = true;
-      let startPosition = e.selectionStart;
-      let str = "left: " + (e.offsetWidth + startPosition * 10) / 2 + "px;";
-      str += "top: " + e.offsetHeight + "px;";
-      let dropDownList = document.getElementById("popup");
-      dropDownList.setAttribute("style", str);
-    },
-    hideDropDownList() {
-      //this.showDropDownList = false;
-    },
-    showDropDownList() {
-      this.showDropDownList = true;
+      const pos = this.$refs.input.selectionStart;
+      let newSymbol = e.srcElement.innerText;
+      this.verse = [this.verse.slice(0, pos), newSymbol, this.verse.slice(pos)].join("");
+      this.$refs.input.focus();
     }
   }
 });

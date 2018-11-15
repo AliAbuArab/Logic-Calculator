@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
   </head>
-
   <body>
     <div id="app">
       <div class="jumbotron jumbotron-fluid text-center">
@@ -19,44 +18,18 @@
       <div class="container">
         <div class="row">
           <div class="col-12">
-            <div class="input-group-lg mx-auto">
-              <input
-                id="input"
-                type="text"
-                class="form-control text-center"
-                @input="moveDDlist"
-                @blur="hideDropDownList"
-                v-model="input"
-              />
-              <br />
-              <div id="popup" v-show="showDropDownList">
-                <div class="btn-group" role="group" aria-label="Basic example">
-                  <button
-                    type="button"
-                    class="btn btn-light"
-                    @click="addSymbol"
-                  >
-                    (
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-light"
-                    @click="addSymbol"
-                  >
-                    )
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-light"
-                    @click="addSymbol"
-                  >
-                    ->
-                  </button>
-                </div>
-              </div>
+            <div class="input-group-lg">
+              <input ref="input" type="text" class="form-control text-center" v-model="verse"/>
             </div>
           </div>
-          <div class="col-12">{{ input }}</div>
+          <div class="btn-group mx-auto mt-2">
+            <button type="button" class="btn btn-light" @click="addSymbol">(</button>
+            <button type="button" class="btn btn-light" @click="addSymbol">)</button>
+            <button type="button" class="btn btn-light" @click="addSymbol">&rarr;</button>
+            <button type="button" class="btn btn-light" @click="addSymbol">&and;</button>
+            <button type="button" class="btn btn-light" @click="addSymbol">&or;</button>
+          </div>
+          <div class="col-12">{{ verse }}</div>
         </div>
       </div>
     </div>
