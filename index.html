@@ -25,18 +25,23 @@
           <div class="btn-group mx-auto mt-2">
             <button type="button" class="btn btn-light" @click="addSymbol">(</button>
             <button type="button" class="btn btn-light" @click="addSymbol">)</button>
+            <button type="button" class="btn btn-light" @click="addSymbol">¬</button>
             <button type="button" class="btn btn-light" @click="addSymbol">→</button>
             <button type="button" class="btn btn-light" @click="addSymbol">∧</button>
             <button type="button" class="btn btn-light" @click="addSymbol">∨</button>
             <button type="button" class="btn btn-light" @click="addSymbol">⊢</button>
             <button type="button" class="btn btn-light" @click="addSymbol">⊨</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">¬</button>
           </div>
           <div class="col-12">{{ verse }}</div>
         </div>
       </div>
     </div>
+    <footer class="bg-light">
+      <div class="container text-center">
+        Copyright &copy; by Salam Aslah & Ali Abu Arab 
+      </div>
+    </footer>
+    <script sync defer src="js/vue.min.js"></script>
+    <script sync defer src="js/app.js"></script>
   </body>
-  <script sync defer src="js/vue.min.js"></script>
-  <script sync defer src="js/app.js"></script>
 </html>
