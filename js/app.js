@@ -3,7 +3,6 @@ let app = new Vue({
   data: {
     title: "Logical Calculator",
     greeting: "Welcome to Telhai's Logical Calculator",
-    message: "Hello Vue!",
     verse: ""
   },
   watch: {
@@ -34,10 +33,10 @@ let app = new Vue({
       stack.length === 0 ? console.log("Balanced") : console.log("Not Balanced");
     },
     addSymbol(e) {
-      const pos = this.$refs.input.selectionStart;
-      let newSymbol = e.srcElement.innerText;
-      this.verse = [this.verse.slice(0, pos), newSymbol, this.verse.slice(pos)].join("");
-      this.$refs.input.focus();
+      const pos = this.$refs.input.selectionStart; // get the pos of cursor
+      let newSymbol = e.srcElement.innerText; // get the new symbol that entered
+      this.verse = [this.verse.slice(0, pos), newSymbol, this.verse.slice(pos)].join(""); // update the verse
+      this.$refs.input.focus(); // return the focus on the input text if want to continue writing
     }
   }
 });
