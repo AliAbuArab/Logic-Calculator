@@ -16,16 +16,16 @@ let app = new Vue({
       let expression = this.verse.split("");
       let stack = [];
       for (let i = 0; i < expression.length; i++) {
-        if (expression[i] === "(" || expression[i] === ")") {
-          if (expression[i] === "(") {
+        if (expression[i] == "(" || expression[i] == ")") {
+          if (expression[i] == "(") {
             stack.push(expression[i]);
           } else {
-            if (stack.length === 0) {
+            if (stack.length == 0) {
               console.log("Not Balanced");
               return;
             }
             let top = stack.pop();
-            if (top === "(" && expression[i] !== ")")
+            if (top == "(" && expression[i] !== ")")
               console.log("Not Balanced");
           }
         }
@@ -34,9 +34,13 @@ let app = new Vue({
     },
     addSymbol(e) {
       const pos = this.$refs.input.selectionStart; // get the pos of cursor
-      let newSymbol = e.srcElement.innerText; // get the new symbol that entered
-      this.verse = [this.verse.slice(0, pos), newSymbol, this.verse.slice(pos)].join(""); // update the verse
-      this.$refs.input.focus(); // return the focus on the input text if want to continue writing
+      const newSymbol = e.srcElement.innerText; // get the new symbol that entered
+      const strBeforeCursor = this.verse.slice(0, pos);
+      const strAfterCursor = this.verse.slice(pos);
+      this.verse = strBeforeCursor + newSymbol + strAfterCursor; // update the verse 
+      const el = document.getElementById("input");
+      el.value = this.verse;
+      el.setSelectionRange(pos+1, pos+1);
     }
   }
 });
