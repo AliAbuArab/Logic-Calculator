@@ -11,28 +11,20 @@
     <div id="app">
       <div class="jumbotron jumbotron-fluid text-center">
         <div class="container">
-          <h1 class="display-4">{{ title }}</h1>
-          <p class="lead">{{ greeting }}</p>
+          <h1 class="display-4">Logical Calculator</h1>
+          <p class="lead">Welcome to Telhai's Logical Calculator</p>
         </div>
       </div>
       <div class="container">
         <div class="row">
           <div class="col-12">
             <div class="input-group-lg">
-              <input id="input" ref="input" type="text" class="form-control text-center" v-model="verse"/>
+              <input id="input" type="text" class="form-control text-center" onkeyup="updateVerse(this)" placeholder="Enter your verse"/>
             </div>
           </div>
-          <div class="btn-group mx-auto mt-2">
-            <button type="button" class="btn btn-light" @click="addSymbol">(</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">)</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">¬</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">→</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">∧</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">∨</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">⊢</button>
-            <button type="button" class="btn btn-light" @click="addSymbol">⊨</button>
+          <div id="symbolButtons" class="btn-group mx-auto mt-2">
           </div>
-          <div class="col-12">{{ verse }}</div>
+          <div class="col-12">// verse //</div>
         </div>
       </div>
     </div>
@@ -41,7 +33,7 @@
         Copyright &copy; by Salam Aslah & Ali Abu Arab 
       </div>
     </footer>
-    <script sync defer src="js/vue.min.js"></script>
+    <!-- <script sync defer src="js/vue.min.js"></script> -->
     <script sync defer src="js/app.js"></script>
   </body>
 </html>
