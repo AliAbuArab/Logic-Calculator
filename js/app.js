@@ -17,10 +17,7 @@ let verse = "";
 const isSymbol = character => this.symbols.indexOf(character) > -1;
 
 // check if the character is valid
-const isCharValid = character => character.match(/^[a-z]+$/i) || this.symbols.indexOf(character) > -1;
-
-// update the global verse variable when input change
-const updateVerse = e => verse = e.value;
+const isCharValid = character => character.match(/^[a-z]+$/i) || symbols.indexOf(character) > -1;
 
 // check if parentheses i sbalanced
 const isBalanced = () => {
@@ -45,19 +42,36 @@ const isBalanced = () => {
   stack.length === 0 ? console.log("Balanced") : console.log("Not Balanced");
 }
 
-// add symbol to verse from buttons group
-const addSymbol = e => {
-  e = e.srcElement;
-  const pos = input.selectionStart; // get the pos of cursor
-  const newSymbol = e.innerText; // get the new symbol that entered
+//
+const addCharacterToVerse = (character, pos) => {
+  // check if the new character is valid
+  if (!isCharValid(character)) {
+    verse = verse.slice(0, pos) + verse.slice(pos+1);
+    input.value = verse;
+    input.setSelectionRange(pos, pos); 
+    return;
+  }
+  if (input.value == '') 
+    verse = '';
   const strBeforeCursor = verse.slice(0, pos);
   const strAfterCursor = verse.slice(pos);
-  verse = strBeforeCursor + newSymbol + strAfterCursor; // update the verse 
+  verse = strBeforeCursor + character + strAfterCursor; // update the verse 
   input.value = verse;
   input.setSelectionRange(pos+1, pos+1);
+  if (character == '(') {
+    addCharacterToVerse(')', pos+1);
+    input.setSelectionRange(pos+1, pos+1); 
+  }
 }
 
-// add buttons dynamically 
+// add symbol to verse from buttons group
+const addSymbol = e => {
+  const symbol = e.srcElement.innerText; // get the new symbol that entered
+  const pos = input.selectionStart; // get the pos of cursor
+  addCharacterToVerse(symbol, pos);
+}
+
+// initialize buttons group dynamically 
 symbols.forEach(symbol => {
   let button = document.createElement("button");
   button.type = "button" 
@@ -66,18 +80,23 @@ symbols.forEach(symbol => {
   button.innerText = symbol;
   symbolButtons.appendChild(button);
 });
+// focus on input when load the page
+input.focus();
 
-
-//   watch: {
-//     verse() {
-//       const pos = this.$refs.input.selectionStart - 1; // get the pos of cursor
-//       const newChar = this.verse.charAt(pos);
-//       // check if the new character is valid
-//       if (!this.isCharValid(newChar)) {
-//         txtinput.value = this.verse;
-//         txtinput.setSelectionRange(pos+1, pos+1);
-//       }
-//       //this.isBalanced();
-//     }
-//   }
-// });
+// update the global verse variable when input change
+  const updateVerse = e => {
+  if (e.key == "Shift" || e.key == "ArrowLeft" || e.key == "ArrowRight") return;
+  if (e.key == "Backspace") {
+    verse = input.value;
+    return;
+  }
+  const pos = input.selectionStart - 1; // get the pos of cursor
+  if (pos == -1) {
+    if (e.srcElement.value == '') 
+      verse = '';
+    return;
+  }
+  const newChar = e.srcElement.value.charAt(pos);
+  addCharacterToVerse(newChar, pos);
+  //isBalanced();
+}
