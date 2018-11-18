@@ -98,5 +98,5 @@ input.focus();
   }
   const newChar = e.srcElement.value.charAt(pos);
   addCharacterToVerse(newChar, pos);
-  //isBalanced();
+  //isBalanced(); 
 }
