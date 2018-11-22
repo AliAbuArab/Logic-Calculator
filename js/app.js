@@ -71,36 +71,47 @@ input.addEventListener("keyup", function(event) {
 
 // check if parentheses i sbalanced
 const isVerseValid = () => {
-  try {
+  try 
+  {
     if (verse == null) return true;
     const expression = verse.split(""); // convert the string to array
-    const allSymbols = [...symbols, ...concludeSymbols];
+    const allSymbols = [...symbols, ...concludeSymbols]; // merge the symbols array with concludeSymbols
     let stack = [];
-    if ((symbols.includes(expression[0]) && expression[0] != '¬') || (concludeSymbols.includes(expression[0]) && expression.length == 1) || (symbols.includes(expression[expression.length-1]))) 
+
+    if ((symbols.includes(expression[0]) && expression[0] != '¬') 
+      || (concludeSymbols.includes(expression[0]) && expression.length == 1) 
+      || (symbols.includes(expression[expression.length-1]))) 
       throw "The verse shouldn't begin/end with symbol";
-    for (let i = 0; i < expression.length; i++) {
+
+    for (let i = 0; i < expression.length; i++) 
+    {
       if (!isCharValid(expression[i])) 
         throw "character is not valid";
+
       if (!isNaN(expression[i]) && (expression[i-1] == undefined || !isLetter(expression[i-1]))) 
         throw "there is an invalid variable";
-      if (allSymbols.includes(expression[i]) && allSymbols.includes(expression[i-1]) && !(expression[i] == '¬' && expression[i-1] == '¬') && !(concludeSymbols.includes(expression[i-1]) && expression[i] == '¬'))
+
+      if (allSymbols.includes(expression[i]) 
+        && allSymbols.includes(expression[i-1]) 
+        && !(expression[i] == '¬' && expression[i-1] == '¬') 
+        && !(concludeSymbols.includes(expression[i-1]) && expression[i] == '¬'))
         throw expression[i-1] + expression[i] + " not valid";
-      // check if parentheses balanced
+      
+        // check if parentheses balanced
       if (parentheses.includes(expression[i])) {
         if (expression[i] == "(") {
           stack.push(expression[i]);
         } else {
-          if (stack.length == 0)
-            throw "Parentheses not balanced";
+          if (stack.length == 0) throw "Parentheses not balanced";
           stack.pop();
         }
       }
     }
-    if (stack.length > 0)
-      throw "Parentheses not balanced";
+    if (stack.length > 0) throw "Parentheses not balanced";
     hideErrMsg();
     return true;
-  } catch(e) {
+  } 
+  catch(e) {
     error(e);
     return false;
   }
