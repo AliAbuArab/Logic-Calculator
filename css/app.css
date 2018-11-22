@@ -3,3 +3,11 @@ footer {
     bottom:0;
     width:100%;
 }
+
+img {
+    width: 25px;
+}
+
+#error {
+    display: none;
+}
