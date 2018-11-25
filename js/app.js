@@ -6,8 +6,6 @@ const symbols = ['¬', '→', '∧', '∨'];
 const concludeSymbols = ['⊢', '⊨'];
 const input = document.getElementById("input");
 const errorMsg = document.getElementById("error");
-let verse = "";
-
 
 
 // -----------------------------------------------------
@@ -38,13 +36,13 @@ const isCharValid = character => character.match(/^[a-zA-Z0-9]+$/i)
   || symbols.includes(character) 
   || concludeSymbols.includes(character);
 
-// add symbol to verse from buttons group
+// add symbol to formula from buttons group
 const addSymbol = e => {
   const symbol = e.srcElement.innerText;  // get the new symbol that entered
   const pos = input.selectionStart; // get the pos of cursor
-  let verse = input.value;
-  const strBeforeCursor = verse.slice(0, pos);  // cut the verse before the cursor
-  const strAfterCursor = verse.slice(pos);  // cut the verse after the cursor
+  let formula = input.value;
+  const strBeforeCursor = formula.slice(0, pos);  // cut the formula before the cursor
+  const strAfterCursor = formula.slice(pos);  // cut the formula after the cursor
   input.value = strBeforeCursor + symbol + strAfterCursor;
   input.setSelectionRange(pos+1, pos+1);  // move the cursor one step to the right
 }
@@ -70,21 +68,22 @@ input.addEventListener("keyup", function(event) {
 });
 
 // check if parentheses i sbalanced
-const isVerseValid = () => {
+const isFormulaValid = formula => {
   try 
   {
-    if (verse == null) return true;
-    const expression = verse.split(""); // convert the string to array
+    if (formula == null || formula == '') throw "The formula is empty";
+    const expression = formula.split(""); // convert the string to array
     const allSymbols = [...symbols, ...concludeSymbols]; // merge the symbols array with concludeSymbols
     let stack = [];
 
-    if ((symbols.includes(expression[0]) && expression[0] != '¬') 
-      || (concludeSymbols.includes(expression[0]) && expression.length == 1) 
-      || (symbols.includes(expression[expression.length-1]))) 
-      throw "The verse shouldn't begin/end with symbol";
+    if ((symbols.includes(expression[0]) && expression[0] != '¬') || (symbols.includes(expression[expression.length-1]))) 
+      throw "The formula shouldn't begin/end with symbol";
 
     for (let i = 0; i < expression.length; i++) 
     {
+      if (concludeSymbols.some(v => expression[i] === v)) 
+        throw "there is two conclude symbols";
+      
       if (!isCharValid(expression[i])) 
         throw "character is not valid";
 
@@ -119,9 +118,23 @@ const isVerseValid = () => {
 
 //
 const run = () => {
-  verse = input.value;
-  if (isVerseValid()) 
+  formula = input.value;
+  formula = formula.trim(); // remove white spaces from begin/end of formula
+  let valid = true;
+  let leftSide = rightSide = null;
+  const pos = formula.indexOf('⊢') == -1 ? formula.indexOf('⊨') == -1 ? -1 : formula.indexOf('⊨') : formula.indexOf('⊢');
+  
+  if (pos == -1) {
+    leftSide = formula.slice(0, formula.length);
+    valid = isFormulaValid(leftSide);
+  } else {
+    leftSide = formula.slice(0, pos);
+    rightSide = formula.slice(pos+1);
+    valid = isFormulaValid(leftSide) && isformulaValid(rightSide);
+  }
+  
+  if (valid) 
     console.log("Valid");
-  else
+  else 
     console.log("Not Valid"); 
 }
