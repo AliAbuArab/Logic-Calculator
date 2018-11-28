@@ -157,7 +157,7 @@ const priorityOf = operator => {
 | Function:     addOperand
 | args:         node, operandsStack, operatorsStack
 | return:       0 | 1 | 2
-| description:  Adds a new operand to the operands stack, evaluating any negations that need to be performed first.
+| description:  Adds a new operand to the operands stack, evaluating any '¬' that need to be performed first.
 */
 const addOperand = (node, operands, operators) => {
 	while (operators.length > 0 && operators[0] == NOT) {
@@ -178,7 +178,7 @@ const readFormula = formula => {
   try {
     if (formula == EOF) throw "The formula is empty";
     const operatorsStack = [];  // operator stack for validation issue
-	  const operandsStack  = [];  // operands stack that will useing later      
+	  const operandsStack  = [];  // operands stack that will useing later as tree     
     let character = '';         // instead of write formula[i]
     let expectOperand = true;   // help us to check if operand is needed 
     let i = 0;                  // index for loop over the formula
@@ -192,34 +192,34 @@ const readFormula = formula => {
       if (!isCharValid(character)) throw `${character} not valid character`;
       
       // Check if is operand/variable
-      const operand = readOperand(formula, i);
+      const operand = readOperand(formula, i);  // If is not operand will get null, otherwise we get the operand
       if (operand != null) {
         if (!expectOperand) throw "Expected →, ∧, ∨";
+        // Add the operand to the tree
         addOperand(new UnaryNode(operand), operandsStack, operatorsStack);
-        expectOperand = false;    // Now we expect operator or parentheses
-        i += operand.length;      // Skip the opernad to the next token
+        expectOperand = false;  // Now we expect operator or parentheses
+        i += operand.length;    // Skip the opernad to the next token
         continue;
       }
 
       // Check if is operator ¬, →, ∧, ∨
       else if (isOperator(character)) {
-        if (character == NOT && expectOperand) {
-          operatorsStack.unshift(character); // push to start of array
-        }
-        else if (character == NOT && !expectOperand)
-          throw "Expected →, ∧, ∨";
-        else if (expectOperand) { 
-          throw "Expected operand";
-        }
+        //
+        if (character == NOT && expectOperand) operatorsStack.unshift(character); // push to start of array
+        //
+        else if (character == NOT && !expectOperand) throw "Expected →, ∧, ∨";
+        //
+        else if (expectOperand) throw "Expected operand";
+        //
         else if (character != NOT) {
 				  while (true) {
             if (operatorsStack.length == 0
               || operatorsStack[0] == OPEN_PARENTHESES
               || priorityOf(operatorsStack[0] <= priorityOf(character))) break;
-          
             const operator = operatorsStack.shift();
             const rhs = operandsStack.shift();
-            const lhs = operandsStack.shift();  
+            const lhs = operandsStack.shift();
+            // Add the operand to the tree
             addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack);
           }
           operatorsStack.unshift(character); // push to start of array
@@ -229,51 +229,51 @@ const readFormula = formula => {
 
       // Check if is parentheses (, )
       else if (parentheses.includes(character)) {
+        //
         if (character == OPEN_PARENTHESES && expectOperand) 
           operatorsStack.unshift(character); // push to start of array
-        
+        //
         else if (character == OPEN_PARENTHESES && !expectOperand)
           throw "Expecting close parenthesis";
-
+        //
         else if (character == CLOSE_PARENTHESES && expectOperand)
           throw "Expecting an operand or open parenthesis";
-
+        //
         else if (!expectOperand) {
           while (true) {
             if (operatorsStack.length == 0) 
               throw "This close parenthesis doesn't match any open parenthesis";
-            
+            //
             const operator = operatorsStack.shift(); // pop from start of array
             if (operator == OPEN_PARENTHESES) break;  
             
-            // Otherwise, if the top of the stack is a negation, we have a syntax error
-            if (operator == NOT) 
-              throw "Nothing is negated by this operator";
-          
+            // Otherwise, if the top of the stack is a '¬', we have a syntax error
+            if (operator == NOT) throw "Nothing is negated by this operator";
+            //
             const rhs = operandsStack.shift(); // pop from start of array
             const lhs = operandsStack.shift(); // pop from start of array
+            // Add the operand to the tree
             addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack);
           }
           const operand = operandsStack.shift();
+          // Add the operand to the tree
           addOperand(operand, operandsStack, operatorsStack);
         }
       }
       // Check if it not whitespaces
-      else if (!isWhitespace(character)) 
-        throw "The character " + character + " shouldn't be here";
+      else if (!isWhitespace(character)) throw "The character " + character + " shouldn't be here";
       i++; // Increment any away to the next character of formula
     }
     
     if (operatorsStack.length > 0) {
-      if (expectOperand) 
-        throw "Missing an operand or close parenthesis";
+      if (expectOperand) throw "Missing an operand or close parenthesis";
       while (true) {
         if (operatorsStack.length == 0 || operatorsStack[0] == CLOSE_PARENTHESES) break;
         if (operatorsStack[0] == OPEN_PARENTHESES) throw "open parenthesis has no matching close parenthesis";
-        let operator = operatorsStack.shift();
-        let rhs = operandsStack.shift();
-        let lhs = operandsStack.shift();
-        addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack);
+        const operator = operatorsStack.shift(); // Pop the last operator from stack
+        const rhs = operandsStack.shift(); // Pop the last operand from stack
+        const lhs = operandsStack.shift(); // Pop the last operand from stack
+        addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack); // Add the operand to the tree
       }
     }
     console.log(operandsStack);
@@ -282,7 +282,7 @@ const readFormula = formula => {
     return true;
   } 
   catch(e) {
-    error(e);
+    error(e); // Show the error in red error message div
     return false;
   }
  }
@@ -323,16 +323,22 @@ const run = () => {
 // Initialize buttons group dynamically 
 // Merge the three arrays to one
 [...parentheses, ...operators, ...concludeOperators].forEach(operator => {
+  // Create new HTML Element button
   const button = document.createElement("button");
-  button.type = "button" 
+  // Add tybe to button 
+  button.type = "button";
+  // Add class to the button
   button.className = "btn btn-light";
+  // Add onClick listener, the addOperator function will handle event and pass to this object
   button.addEventListener("click", addOperator.bind(this), false);
+  // The text will show on the button
   button.innerText = operator;
+  // Add the button to the HTML file
   operatorButtons.appendChild(button);
 });
-// focus on input when load the page
+// Focus on input when load the page
 input.focus();
-// add event when click enter inside the input field
+// Add event when click enter inside the input field
 input.addEventListener("keyup", function(event) {
   event.preventDefault();
   if (event.keyCode === 13) // check if enter is clicked
