@@ -25,10 +25,10 @@ class UnaryNode {
 }
 class BinaryNode {
   //ImpliesNode | ORNode | ANDNode
-  constructor(operator, lhs, rhs) {
+  constructor(operator, left, right) {
     this.operator = operator; 
-    this.lhs = lhs;
-    this.rhs = rhs;
+    this.left = left;
+    this.right = right;
   }
 }
 // ------------------------------------------------------------
@@ -217,10 +217,10 @@ const readFormula = formula => {
               || operatorsStack[0] == OPEN_PARENTHESES
               || priorityOf(operatorsStack[0] <= priorityOf(character))) break;
             const operator = operatorsStack.shift();
-            const rhs = operandsStack.shift();
-            const lhs = operandsStack.shift();
+            const right = operandsStack.shift();
+            const left = operandsStack.shift();
             // Add the operand to the tree
-            addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack);
+            addOperand(new BinaryNode(operator, left, right), operandsStack, operatorsStack);
           }
           operatorsStack.unshift(character); // push to start of array
           expectOperand = true; // Now we're expecting an operand after →, ∧, ∨.
@@ -250,10 +250,10 @@ const readFormula = formula => {
             // Otherwise, if the top of the stack is a '¬', we have a syntax error
             if (operator == NOT) throw "Nothing is negated by this operator";
             //
-            const rhs = operandsStack.shift(); // pop from start of array
-            const lhs = operandsStack.shift(); // pop from start of array
+            const right = operandsStack.shift(); // pop from start of array
+            const left = operandsStack.shift(); // pop from start of array
             // Add the operand to the tree
-            addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack);
+            addOperand(new BinaryNode(operator, left, right), operandsStack, operatorsStack);
           }
           const operand = operandsStack.shift();
           // Add the operand to the tree
@@ -271,9 +271,9 @@ const readFormula = formula => {
         if (operatorsStack.length == 0 || operatorsStack[0] == CLOSE_PARENTHESES) break;
         if (operatorsStack[0] == OPEN_PARENTHESES) throw "open parenthesis has no matching close parenthesis";
         const operator = operatorsStack.shift(); // Pop the last operator from stack
-        const rhs = operandsStack.shift(); // Pop the last operand from stack
-        const lhs = operandsStack.shift(); // Pop the last operand from stack
-        addOperand(new BinaryNode(operator, lhs, rhs), operandsStack, operatorsStack); // Add the operand to the tree
+        const right = operandsStack.shift(); // Pop the last operand from stack
+        const left = operandsStack.shift(); // Pop the last operand from stack
+        addOperand(new BinaryNode(operator, left, right), operandsStack, operatorsStack); // Add the operand to the tree
       }
     }
     console.log(operandsStack);
@@ -285,10 +285,15 @@ const readFormula = formula => {
     error(e); // Show the error in red error message div
     return false;
   }
- }
+}
 
 
-//
+/*
+| Function:     run
+| args:         none
+| return:       none
+| description:  The main function that will run the program
+*/
 const run = () => {
   let formula = input.value;
   formula = formula.trim(); // remove white spaces from begin/end of formula
