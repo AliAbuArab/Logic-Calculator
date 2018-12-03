@@ -19,23 +19,49 @@ const content = document.getElementById("content");
 // Classes
 // ------------------------------------------------------------
 class OperandNode {
+  // constructor
   constructor(operand) { 
     this.operand = operand;
   }
-}
 
-class NotNode {
-  constructor(underNode) { 
-    this.underNode = underNode;
+  // return T/F by search the value of operand in operandsMap
+  calc(operandsMap) {
+    return operandsMap.get(this.operand);
   }
 }
 
+
+class NotNode {
+  // constructor
+  constructor(underNode) { 
+    this.underNode = underNode;
+  }
+
+  // return the negation of the calc result
+  calc(operandsMap) {
+    return !this.underNode.calc(operandsMap);
+  }
+}
+
+
 class BinaryNode {
-  //ImpliesNode | ORNode | ANDNode
+  //ImpliesNode | ORNode | ANDNode constructor
   constructor(operator, left, right) {
     this.operator = operator; 
     this.left = left;
     this.right = right;
+  }
+
+  // Return the result of calculation of OR | AND | Implies
+  calc(operandsMap) {
+    // AND operator
+    if (this.operator == AND)
+      return this.left.calc(operandsMap) && this.right.calc(operandsMap);
+    // OR operator
+    if (this.operator == OR)
+      return this.left.calc(operandsMap) || this.right.calc(operandsMap);
+    // Implies operator
+    return !this.left.calc(operandsMap) || this.right.calc(operandsMap);
   }
 }
 // ------------------------------------------------------------
@@ -79,11 +105,23 @@ const showErrMsg = () => errorMsg.style.display = "block";
 
 /*
 | Function:     hideErrMsg
-| args:         none
-| return:       none
-| description:  hide error message, set dispaly none of error div 
+| args:         None
+| return:       None
+| description:  Hide error message, set dispaly none of error div 
 */
 const hideErrMsg = () => errorMsg.style.display = "none";
+
+
+/*
+| Function:     removeTruthTable
+| args:         None
+| return:       None
+| description:  Remove the truth table from DOM if exist
+*/
+const removeTruthTable = () => {
+  const table = document.getElementById("truthTable"); // Find the truth table if exists
+  if (table) table.remove();  // If the table is already exists then remove it                              
+}
 
 
 /*
@@ -95,6 +133,7 @@ const hideErrMsg = () => errorMsg.style.display = "none";
 const error = msg => {
   showErrMsg();
   errorMsg.innerText = msg;
+  removeTruthTable();
 }
 
 
@@ -287,64 +326,89 @@ const readFormula = formula => {
 
   // if we got here that saying there's no problem therefore we hide the red error message div
   hideErrMsg();
-  return [operandsStack[0], operandsSet];
+  /*
+  * Return array
+  * [0] = The root of tree
+  * [1] = List of operands
+  */
+  return [operandsStack[0], [...operandsSet]];
+}
+
+
+/*
+| Function:     fillTruthTableRecursively
+| args:         row, operandsList, treeRoot, tableBody
+| return:       None
+| description:  Fill the table's body
+*/
+const fillTruthTableRecursively = (i, operandsList, treeRoot, tableBody) => {
+  // Iterate number of rows
+  if (i == 2**operandsList.length) return;
+
+  const operandsValueMap = new Map();           // Create new map for saving operand's value
+  const row = document.createElement("tr");     // Create new column
+  const binaryVal = i.toString(2);              // Convert from integer to binary
+  let j = k = 0;  
+  //
+  while (j < operandsList.length - binaryVal.length) {
+    const col = document.createElement("td");   // Create new column
+    col.innerHTML = "F";                        // Set value of column to "F"
+    row.appendChild(col);                       // Add new column in truth table
+    operandsValueMap.set(operandsList[j], 0);   // Add the value (0) of operand to map
+    j++;
+  }
+  //
+  while (j < operandsList.length) {
+    const col = document.createElement("td");                           // Create new column
+    col.innerHTML = binaryVal.charAt(k) == "0" ? "F" : "T";             // Set value of column to "F"/"T"
+    operandsValueMap.set(operandsList[j], Number(binaryVal.charAt(k))); // Add the value (0/1) of operand to map
+    row.appendChild(col);                                               // Add new column in truth table
+    j++;
+    k++;
+  }
+  // Fill the last column of each row that have the result of assignement (T/F) in formula
+  const col = document.createElement("td");
+  col.innerHTML = treeRoot.calc(operandsValueMap) ? "T" : "F";
+  row.appendChild(col);         // Add the result of calculation to the row
+  tableBody.appendChild(row);   // Add the new result row to the table
+
+  fillTruthTableRecursively(i+1, operandsList, treeRoot, tableBody);
 }
 
 
 /*
 | Function:     createTruthTable
-| args:         operandsSet
+| args:         treeRoot, operandsList
 | return:       None
 | description:  Create the truth table
 */
-const createTruthTable = operandsSet => {
-  const table = document.createElement("table");      // Create new HTML table element
-  table.className = "mx-auto table table-bordered mb-5";   // Add class attribute for styling
-  const tableHeader = document.createElement("thead");// Create table header HTML element
-  const tableBody = document.createElement("tbody");  // Create table body HTML element
-  const row = document.createElement("tr");           // Create table row HTML element for heading
-	// Fill the first table's row for operands and formula
-  for (let operand of operandsSet) {
+const createTruthTable = (treeRoot, operandsList) => {
+  removeTruthTable();                                     // Remove the last truth table
+  const table = document.createElement("table");          // Create new HTML table element
+  table.setAttribute("id", "truthTable");                 // Set id for the truth table
+  table.className = "mx-auto table table-bordered mb-5";  // Add class attribute for styling
+  const tableHeader = document.createElement("thead");    // Create table header HTML element
+  const tableBody = document.createElement("tbody");      // Create table body HTML element
+  const row = document.createElement("tr");               // Create table row HTML element for heading
+  
+  // Fill the first table's row for operands and formula
+  for (let operand of operandsList) {
     const col = document.createElement("th");
     col.innerHTML = operand;
     row.appendChild(col);
   }
+
   // Add the formula to table's heading
   const lastCol = document.createElement("th");
   lastCol.innerHTML = input.value;
   row.appendChild(lastCol);
+
   // Add the heading to the table
   tableHeader.appendChild(row);
   table.appendChild(tableHeader);
-  // Check how much operands/variables we have
-  const numOfVar = operandsSet.size;
-  // Fill the table's body
-  for (let i=0 ; i != 2**numOfVar ; i++) 
-  {
-    const row = document.createElement("tr");
-    const binaryVal = i.toString(2);
-    let j = k = 0;
-    //
-    while (j < numOfVar-binaryVal.length) {
-      const col = document.createElement("td");
-      col.innerHTML = "F";
-      row.appendChild(col);
-      j++
-    }
-    //
-    while (j < numOfVar) {
-      const col = document.createElement("td");
-      col.innerHTML = binaryVal.charAt(k) == "0" ? "F" : "T";
-      row.appendChild(col);
-      j++;
-      k++;
-    }
-    // Fill the last column of each row that have the result of assignement (T/F) in formula
-    const col = document.createElement("td");
-    col.innerHTML = "Result";
-    row.appendChild(col);
-    tableBody.appendChild(row);
-  }
+
+  // Fill the body of truth table
+  fillTruthTableRecursively(0, operandsList, treeRoot, tableBody);
   
   table.appendChild(tableBody); // Add table's body for the table
   content.appendChild(table);   // Add the table to the HTML document
@@ -364,29 +428,32 @@ const run = () => {
   let leftSide = rightSide = null;
   const pos = formula.indexOf('⊢') == -1 ? formula.indexOf('⊨') == -1 ? -1 : formula.indexOf('⊨') : formula.indexOf('⊢');
   let firstTreeRoot = null;
-  let firstTreeOperandsSet = null;
+  let firstTreeOperandsList = null;
   let secondTreeRoot = null;
-  let secondTreeOperandsSet = null;
+  let secondTreeOperandsList = null;
 
   try {
-    if (pos == -1) {
+    if (pos == -1) 
+    {
       leftSide = formula.slice(0, formula.length);
       leftSide.push(EOF);
-      [firstTreeRoot, firstTreeOperandsSet] = readFormula(leftSide);
-    } else {
+      [firstTreeRoot, firstTreeOperandsList] = readFormula(leftSide);
+    } 
+    else 
+    {
       leftSide = formula.slice(0, pos);
       leftSide.push(EOF);
       rightSide = formula.slice(pos+1);
       rightSide.push(EOF);
-      [firstTreeRoot, firstTreeOperands] = readFormula(leftSide); 
-      [secondTreeRoot, secondTreeOperandsSet] = readFormula(rightSide);
+      [firstTreeRoot, firstTreeOperandsList] = readFormula(leftSide); 
+      [secondTreeRoot, secondTreeOperandsList] = readFormula(rightSide);
     }
+
+    createTruthTable(firstTreeRoot, firstTreeOperandsList);
   }
   catch(e) {
     error(e); // Show the error in red error message div
   }
-  
-  createTruthTable(firstTreeOperandsSet);
 }
 
 
