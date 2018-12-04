@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-// Global variables
+// GLOBAL VARIABLES
 // ------------------------------------------------------------
 const EOF = '$';  // End of formula
 const OPEN_PARENTHESES = '(';
@@ -15,8 +15,13 @@ const INPUT = document.getElementById("input");
 const errorMsg = document.getElementById("error");
 const operatorButtons = document.getElementById("operatorButtons");
 const content = document.getElementById("content");
+// -----------------------------------------------------------
+// END OF GLOBAL VARIABLES
+// -----------------------------------------------------------
+
+
 // ------------------------------------------------------------
-// Classes
+// CLASSES
 // ------------------------------------------------------------
 class OperandNode {
   // constructor
@@ -64,6 +69,11 @@ class BinaryNode {
     return !this.left.calc(operandsMap) || this.right.calc(operandsMap);
   }
 }
+// ------------------------------------------------------------
+// END OF CLASSES
+// ------------------------------------------------------------
+
+
 // ------------------------------------------------------------
 // Functions
 // ------------------------------------------------------------
@@ -400,7 +410,7 @@ const createTruthTable = (treeRoot, operandsList) => {
 
   // Add the formula to table's heading
   const lastCol = document.createElement("th");
-  lastCol.innerHTML = input.value;
+  lastCol.innerHTML = treeToString(treeRoot);
   row.appendChild(lastCol);
 
   // Add the heading to the table
@@ -412,6 +422,51 @@ const createTruthTable = (treeRoot, operandsList) => {
   
   table.appendChild(tableBody); // Add table's body for the table
   content.appendChild(table);   // Add the table to the HTML document
+}
+
+
+/*
+| Function:     treeToString
+| args:         node
+| return:       string
+| description:  return the hole formula as pretty string
+*/
+const treeToString = node => {
+  // The node kind of OperandNode
+  if (node instanceof OperandNode) return node.operand;
+  // The node kind of NotNode
+  else if (node instanceof NotNode) return "¬" + treeToString(node.underNode);
+  // The node kind of BinaryNode
+  else return "(" + treeToString(node.left) + " " + node.operator + " " + treeToString(node.right) + ")";
+}
+
+
+/*
+| Function:     impFree
+| args:         node
+| return:       string
+| description:  return the formula formatted to IMP_FREE style
+*/
+const impFree = node => {
+  // The node kind of OperandNode
+  if (node instanceof OperandNode) return node;
+  // The node kind of NotNode
+  else if (node instanceof NotNode) {
+    node.underNode = impFree(node.underNode);
+    return node;
+  }
+  // The node kind of BinaryNode
+  else {
+    if (node.operator == IMPLIES) {
+      node.left = new NotNode(impFree(node.left));
+      node.operator = OR;
+    }
+    else {
+      node.left = impFree(node.left);
+    }
+    node.right = impFree(node.right);
+    return node;
+  }
 }
 
 
@@ -449,12 +504,16 @@ const run = () => {
       [secondTreeRoot, secondTreeOperandsList] = readFormula(rightSide);
     }
 
-    createTruthTable(firstTreeRoot, firstTreeOperandsList);
+    //createTruthTable(firstTreeRoot, firstTreeOperandsList);
+    console.log(impFree(firstTreeRoot));
   }
   catch(e) {
     error(e); // Show the error in red error message div
   }
 }
+// ------------------------------------------------------------
+// END OF FUNCTIONS
+// ------------------------------------------------------------
 
 
 // -----------------------------------------------------
