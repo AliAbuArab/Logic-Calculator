@@ -444,7 +444,7 @@ const treeToString = node => {
 /*
 | Function:     impFree
 | args:         node
-| return:       string
+| return:       node
 | description:  return the formula formatted to IMP_FREE style
 */
 const impFree = node => {
@@ -467,6 +467,51 @@ const impFree = node => {
     node.right = impFree(node.right);
     return node;
   }
+}
+
+
+/*
+| Function:     nnf
+| args:         node
+| return:       node
+| description:  return the formula formatted to NNF style
+*/
+const nnf = node => {
+  // node is opernad
+  if (node instanceof OperandNode) 
+    return node;
+  
+  // node is binary
+  else if (node instanceof BinaryNode) 
+    return new BinaryNode(node.operator, nnf(node.left), nnf(node.right));
+  
+  // node is not
+  else {
+    if (node.underNode instanceof NotNode) 
+      return nnf(node.underNode.underNode);
+
+    else if (node.underNode instanceof BinaryNode) {
+      // And node
+      if (node.underNode.operator == AND)
+        return nnf(new BinaryNode(OR, new NotNode(node.underNode.left), new NotNode(node.underNode.right)));
+      
+      // Or node
+      else 
+        return nnf(new BinaryNode(AND, new NotNode(node.underNode.left), new NotNode(node.underNode.right)));
+    }
+    else return node;
+  }
+}
+
+
+/*
+| Function:     cnf
+| args:         node
+| return:       node
+| description:  return the formula formatted to CNF style
+*/
+const cnf = node => {
+
 }
 
 
@@ -504,10 +549,13 @@ const run = () => {
       [secondTreeRoot, secondTreeOperandsList] = readFormula(rightSide);
     }
 
-    //createTruthTable(firstTreeRoot, firstTreeOperandsList);
-    console.log(impFree(firstTreeRoot));
+    createTruthTable(firstTreeRoot, firstTreeOperandsList);
+    firstTreeRoot = impFree(firstTreeRoot);
+    firstTreeRoot = nnf(firstTreeRoot);
+    console.log(treeToString(firstTreeRoot));
   }
-  catch(e) {
+  catch(e) 
+  {
     error(e); // Show the error in red error message div
   }
 }
