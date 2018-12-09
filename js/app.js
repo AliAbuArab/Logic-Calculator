@@ -551,6 +551,121 @@ const cnf = node => {
   return node;
 }
 
+/*
+| Function:     dnf Distr
+| args:         nodeLeft,nodeRight
+| return:       node
+| description:  return the formula Distr formatted to DNF style
+*/
+const ddistr = (nodeLeft,nodeRight) =>{
+   let leftChild ,rightChild;
+   if(nodeLeft instanceof BinaryNode && nodeLeft.operator== OR)
+   {
+   	leftChild = new BinaryNode(AND,nodeLeft.left,nodeRight);
+   	rightChild = new BinaryNode(AND,nodeLeft.right,nodeRight);
+   }
+   else
+   {
+   	leftChild = new BinaryNode(AND,nodeLeft,nodeRight.left);
+   	rightChild = new BinaryNode(AND,nodeLeft,nodeRight.right);
+   }
+
+   return new BinaryNode(OR,leftChild,rightChild);
+
+}
+
+/*
+| Function:     dnf
+| args:         node
+| return:       node
+| description:  return the formula formatted to DNF style
+*/
+const dnf = node => {
+
+  if(node instanceof OperandNode || node instanceof NotNode){
+  	   return node;
+  	}
+  
+  if(node.operator == AND &&(node.left.operator == OR || node.right.operator == OR)){
+  	node = ddistr(node.left,node.right);
+  }
+  
+  node.left = dnf(node.left);
+  node.right =dnf(node.right);
+  
+  if(node.operator == AND &&(node.left.operator== OR||node.right.operator == OR)){
+  	node = ddistr(node.left,node.right);
+  }
+  return node;
+}
+/*
+|Function : OrSimp
+|args : node 
+|return : node
+|description: simplify OR formula in tree*/
+const OrSimp = (nodeLeft,nodeRight) =>{
+	let lstring = treeToString(nodeLeft);
+  let rstring = treeToString(nodeRight);
+  let llength=lstring.length;
+  let rlength=rstring.length;
+ 
+  if(llength<rlength){
+    
+  }
+
+  if((nodeLeft instanceof OperandNode && nodeLeft.operand=="T")||(nodeRight instanceof OperandNode && nodeRight.operand=="T"))
+		return new OperandNode("T");
+  if(treeToString(nodeLeft) === treeToString(nodeRight))
+    return nodeLeft;
+  if(nodeLeft instanceof NotNode){
+    if(treeToString(nodeLeft.underNode) === treeToString(nodeRight))
+      return new OperandNode("T");
+  }
+  if(nodeRight instanceof NotNode){
+    if(treeToString(nodeLeft) === treeToString(nodeRight.underNode))
+      return new OperandNode("T");
+  }
+	
+
+}
+/*
+|Function : OrSimp
+|args : node 
+|return : node
+|description: simplify OR formula in tree*/
+const AndSimp = (nodeLeft,nodeRight) =>{
+  if((nodeLeft instanceof OperandNode && nodeLeft.operand=="T")
+    return nodeRight;
+  if(nodeRight instanceof OperandNode && nodeRight.operand=="T"))
+    return nodeLeft;
+  if(treeToString(nodeLeft) === treeToString(nodeRight))
+    return nodeLeft;
+  if(nodeLeft instanceof NotNode){
+    if(treeToString(nodeLeft.underNode) === treeToString(nodeRight))
+      return new OperandNode("F");
+  }
+  if(nodeRight instanceof NotNode){
+    if(treeToString(nodeLeft) === treeToString(nodeRight.underNode))
+      return new OperandNode("F");
+  }
+  
+
+}
+
+/*
+|Function : simplify
+|args : node 
+|return : node
+|description: simplify formula tree*/
+const simplify = node =>{
+	if(node instanceof OperandNode || node instanceof NotNode){
+  	   return node;
+  	}
+  	node.left = dnf(node.left);
+    node.right =dnf(node.right);
+    
+
+}
 
 /*
 | Function:     run
@@ -590,7 +705,7 @@ const run = () => {
     firstTreeRoot = impFree(firstTreeRoot);
     firstTreeRoot = nnf(firstTreeRoot);
     //console.log(firstTreeRoot);
-    firstTreeRoot = cnf(firstTreeRoot);
+    firstTreeRoot = dnf(firstTreeRoot);
     console.log(treeToString(firstTreeRoot));
   }
   catch(e) 
