@@ -503,6 +503,28 @@ const nnf = node => {
   }
 }
 
+/*
+| Function:     cnf Distr
+| args:         node
+| return:       node
+| description:  return the formula Distr formatted to CNF style
+*/
+const cdistr = (nodeLeft,nodeRight) =>{
+   let leftChild ,rightChild;
+   if(nodeLeft instanceof BinaryNode && nodeLeft.operator== AND)
+   {
+   	leftChild = new BinaryNode(OR,nodeLeft.left,nodeRight);
+   	rightChild = new BinaryNode(OR,nodeLeft.right,nodeRight);
+   }
+   else
+   {
+   	leftChild = new BinaryNode(OR,nodeLeft,nodeRight.left);
+   	rightChild = new BinaryNode(OR,nodeLeft,nodeRight.right);
+   }
+
+   return new BinaryNode(AND,leftChild,rightChild);
+
+}
 
 /*
 | Function:     cnf
@@ -512,6 +534,21 @@ const nnf = node => {
 */
 const cnf = node => {
 
+  if(node instanceof OperandNode || node instanceof NotNode){
+  	return node;
+  	}
+  
+  if(node.operator == OR &&(node.left.operator== AND||node.right.operator == AND)){
+  	node = cdistr(node.left,node.right);
+  }
+  
+  node.left = cnf(node.left);
+  node.right =cnf(node.right);
+  
+  if(node.operator == OR &&(node.left.operator== AND||node.right.operator == AND)){
+  	node = cdistr(node.left,node.right);
+  }
+  return node;
 }
 
 
@@ -552,6 +589,8 @@ const run = () => {
     createTruthTable(firstTreeRoot, firstTreeOperandsList);
     firstTreeRoot = impFree(firstTreeRoot);
     firstTreeRoot = nnf(firstTreeRoot);
+    //console.log(firstTreeRoot);
+    firstTreeRoot = cnf(firstTreeRoot);
     console.log(treeToString(firstTreeRoot));
   }
   catch(e) 
