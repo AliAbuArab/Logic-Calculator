@@ -272,7 +272,7 @@ const readFormula = formula => {
         while (true) {
           if (operatorsStack.length == 0
             || operatorsStack[0] == OPEN_PARENTHESES
-            || priorityOf(operatorsStack[0] <= priorityOf(character))) break;
+            || priorityOf(operatorsStack[0]) <= priorityOf(character)) break;
           const operator = operatorsStack.shift();
           const right = operandsStack.shift();
           const left = operandsStack.shift();
