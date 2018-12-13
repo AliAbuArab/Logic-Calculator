@@ -1,3 +1,8 @@
+2/**
+ *  
+ * Copyright by Salam Aslah & Ali Abu Arab (2018)
+*/ 
+
 // ------------------------------------------------------------
 // GLOBAL VARIABLES
 // ------------------------------------------------------------
@@ -9,6 +14,8 @@ const NOT = '¬';
 const IMPLIES = '→';
 const AND = '∧';
 const OR = '∨'
+const TRUE = 'T';
+const FALSE = 'F';
 const operators = [NOT, IMPLIES, AND, OR];
 const concludeOperators = ['⊢', '⊨'];
 const INPUT = document.getElementById("input");
@@ -31,7 +38,7 @@ class OperandNode {
 
   // return T/F by search the value of operand in operandsMap
   calc(operandsMap) {
-    return operandsMap.get(this.operand);
+    return this.operand == TRUE ? true : this.operand == FALSE ? false : operandsMap.get(this.operand);
   }
 }
 
@@ -83,7 +90,7 @@ class BinaryNode {
 | return:       true | false
 | description:  check if character is whitespace
 */
-const isWhitespace= character => character.trim() === '';
+const isWhitespace = character => character.trim() === '';
 
 
 /*
@@ -210,6 +217,63 @@ const priorityOf = operator => {
 
 
 /*
+| Function:     sort
+| args:         str
+| return:       string
+| description:  Sorting string letters nn alphabetical order
+*/
+const sort = str => str.split('').sort().join('');
+
+
+/*
+| Function:     isSetsEquals
+| args:         set1, set2
+| return:       true/false
+| description:  Check if sets is equals
+*/
+const isSetsEquals = (set1, set2) => {
+  if (set1.size != set2.size) return false;
+  for (let item of set1) if (!set2.has(item)) return false;
+  return true;
+}
+
+const isSubSet = (set1,set2) =>{
+  if(set1.size>set2.size){
+    for (let item of set2) if (!set1.has(item)) return false;
+  return true;
+  }
+  else{
+    for (let item of set1) if (!set2.has(item)) return false;
+  return true;
+  }
+}
+
+const isNotSubSet = (set1,set2) =>{
+  let cnt=0;
+  if (set1.size != set2.size) return false;
+  for (let item1 of set1) {
+    for(let item2 of set2){
+      if(item1 != item2 && cnt>0){
+           return false;
+          }
+       
+      //if(item1 != item2 && item1.indexOf(NOT)== -1 && item2.indexOf(NOT)==-1){ 
+       // return false;
+      //}
+
+      if(item1 != item2 && (item1.indexOf(NOT)||item2.indexOf(NOT)))
+      {
+        if(item1.length>item2.length)
+           if(item1.indexOf(item2))cnt++;
+        else 
+         if(item2.indexOf(item1))cnt++;
+      }
+      
+    }
+  }
+  return true;
+}
+/*
 | Function:     addOperand
 | args:         node, operandsStack, operatorsStack
 | return:       0 | 1 | 2
@@ -232,12 +296,12 @@ const addOperand = (node, operands, operators) => {
 */
 const readFormula = formula => {
   if (formula == EOF) throw "The formula is empty";
-  const operatorsStack = [];  // Operator stack for validation issue
-  const operandsStack  = [];  // Operands stack that will useing later as tree
+  const operatorsStack = [];    // Operator stack for validation issue
+  const operandsStack  = [];    // Operands stack that will useing later as tree
   const operandsSet = new Set();// Set of operands    
-  let character = '';         // Instead of write formula[i]
-  let expectOperand = true;   // Help us to check if operand is needed 
-  let i = 0;                  // Index for loop over the formula
+  let character = '';           // Instead of write formula[i]
+  let expectOperand = true;     // Help us to check if operand is needed 
+  let i = 0;                    // Index for loop over the formula
   // loop over the formula array
   while ((character = formula[i]) != EOF) 
   {
@@ -248,10 +312,12 @@ const readFormula = formula => {
     if (!isCharValid(character)) throw `${character} not valid character`;
     
     // Check if is operand/variable
-    const operand = readOperand(formula, i);  // If is not operand will get null, otherwise we get the operand
+    let operand = readOperand(formula, i);  // If is not operand will get null, otherwise we get the operand
     if (operand != null) {
       if (!expectOperand) throw "Expected →, ∧, ∨";
       // Add the operand to the tree
+      if (operand == "t") operand = TRUE;
+      else if (operand == "f") operand = FALSE;
       operandsSet.add(operand);
       addOperand(new OperandNode(operand), operandsStack, operatorsStack);
       expectOperand = false;  // Now we expect operator or parentheses
@@ -336,7 +402,10 @@ const readFormula = formula => {
 
   // if we got here that saying there's no problem therefore we hide the red error message div
   hideErrMsg();
-  /*
+  
+  operandsSet.delete(TRUE);
+  operandsSet.delete(FALSE);
+  /**
   * Return array
   * [0] = The root of tree
   * [1] = List of operands
@@ -503,28 +572,26 @@ const nnf = node => {
   }
 }
 
+
 /*
-| Function:     cnf Distr
-| args:         node
+| Function:     cdistr
+| args:         nodeLeft, nodeRight
 | return:       node
 | description:  return the formula Distr formatted to CNF style
 */
-const cdistr = (nodeLeft,nodeRight) =>{
-   let leftChild ,rightChild;
-   if(nodeLeft instanceof BinaryNode && nodeLeft.operator== AND)
-   {
-   	leftChild = new BinaryNode(OR,nodeLeft.left,nodeRight);
+const cnfDistr = (nodeLeft, nodeRight) => {
+  let leftChild ,rightChild;
+  if (nodeLeft instanceof BinaryNode && nodeLeft.operator== AND) {
+    leftChild = new BinaryNode(OR,nodeLeft.left,nodeRight);
    	rightChild = new BinaryNode(OR,nodeLeft.right,nodeRight);
-   }
-   else
-   {
-   	leftChild = new BinaryNode(OR,nodeLeft,nodeRight.left);
-   	rightChild = new BinaryNode(OR,nodeLeft,nodeRight.right);
-   }
-
-   return new BinaryNode(AND,leftChild,rightChild);
-
+  }
+  else {
+    leftChild = new BinaryNode(OR,nodeLeft,nodeRight.left);
+    rightChild = new BinaryNode(OR,nodeLeft,nodeRight.right);
+  }
+  return new BinaryNode(AND,leftChild,rightChild);
 }
+
 
 /*
 | Function:     cnf
@@ -533,46 +600,40 @@ const cdistr = (nodeLeft,nodeRight) =>{
 | description:  return the formula formatted to CNF style
 */
 const cnf = node => {
-
-  if(node instanceof OperandNode || node instanceof NotNode){
+  if (node instanceof OperandNode || node instanceof NotNode)
   	return node;
-  	}
   
-  if(node.operator == OR &&(node.left.operator== AND||node.right.operator == AND)){
-  	node = cdistr(node.left,node.right);
-  }
+  if (node.operator == OR &&(node.left.operator == AND || node.right.operator == AND))
+  	node = cnfDistr(node.left, node.right);
   
   node.left = cnf(node.left);
   node.right =cnf(node.right);
   
-  if(node.operator == OR &&(node.left.operator== AND||node.right.operator == AND)){
-  	node = cdistr(node.left,node.right);
-  }
+  if (node.operator == OR &&(node.left.operator == AND || node.right.operator == AND))
+  	node = cnfDistr(node.left, node.right);
   return node;
 }
 
+
 /*
-| Function:     dnf Distr
-| args:         nodeLeft,nodeRight
+| Function:     dnfDistr
+| args:         nodeLeft, nodeRight
 | return:       node
 | description:  return the formula Distr formatted to DNF style
 */
-const ddistr = (nodeLeft,nodeRight) =>{
-   let leftChild ,rightChild;
-   if(nodeLeft instanceof BinaryNode && nodeLeft.operator== OR)
-   {
-   	leftChild = new BinaryNode(AND,nodeLeft.left,nodeRight);
-   	rightChild = new BinaryNode(AND,nodeLeft.right,nodeRight);
-   }
-   else
-   {
-   	leftChild = new BinaryNode(AND,nodeLeft,nodeRight.left);
-   	rightChild = new BinaryNode(AND,nodeLeft,nodeRight.right);
-   }
-
-   return new BinaryNode(OR,leftChild,rightChild);
-
+const dnfDistr = (nodeLeft, nodeRight) =>{
+  let leftChild ,rightChild;
+  if (nodeLeft instanceof BinaryNode && nodeLeft.operator == OR) {
+   	leftChild = new BinaryNode(AND, nodeLeft.left, nodeRight);
+   	rightChild = new BinaryNode(AND, nodeLeft.right, nodeRight);
+  }
+  else {
+   	leftChild = new BinaryNode(AND, nodeLeft, nodeRight.left);
+   	rightChild = new BinaryNode(AND, nodeLeft, nodeRight.right);
+  }
+  return new BinaryNode(OR, leftChild, rightChild);
 }
+
 
 /*
 | Function:     dnf
@@ -581,28 +642,28 @@ const ddistr = (nodeLeft,nodeRight) =>{
 | description:  return the formula formatted to DNF style
 */
 const dnf = node => {
-
-  if(node instanceof OperandNode || node instanceof NotNode){
-  	   return node;
-  	}
+  if (node instanceof OperandNode || node instanceof NotNode)
+  	return node;
   
-  if(node.operator == AND &&(node.left.operator == OR || node.right.operator == OR)){
-  	node = ddistr(node.left,node.right);
-  }
+  if (node.operator == AND && (node.left.operator == OR || node.right.operator == OR))
+  	node = ddistr(node.left, node.right);
   
   node.left = dnf(node.left);
-  node.right =dnf(node.right);
+  node.right = dnf(node.right);
   
-  if(node.operator == AND &&(node.left.operator== OR||node.right.operator == OR)){
-  	node = ddistr(node.left,node.right);
-  }
+  if (node.operator == AND && (node.left.operator == OR || node.right.operator == OR))
+  	node = ddistr(node.left, node.right);
+  
   return node;
 }
+
+
 /*
-|Function : OrSimp
-|args : node 
-|return : node
-|description: simplify OR formula in tree*/
+| Function : OrSimp
+| args : node 
+| return : node
+| description: simplify OR formula in tree
+*/
 const OrSimp = (nodeLeft,nodeRight) =>{
 	let lstring = treeToString(nodeLeft);
   let rstring = treeToString(nodeRight);
@@ -625,18 +686,19 @@ const OrSimp = (nodeLeft,nodeRight) =>{
     if(treeToString(nodeLeft) === treeToString(nodeRight.underNode))
       return new OperandNode("T");
   }
-	
-
 }
+
+
 /*
-|Function : OrSimp
-|args : node 
-|return : node
-|description: simplify OR formula in tree*/
+| Function : OrSimp
+| args : node 
+| return : node
+| description: simplify OR formula in tree
+*/
 const AndSimp = (nodeLeft,nodeRight) =>{
-  if((nodeLeft instanceof OperandNode && nodeLeft.operand=="T")
+  if((nodeLeft instanceof OperandNode && nodeLeft.operand=="T"))
     return nodeRight;
-  if(nodeRight instanceof OperandNode && nodeRight.operand=="T"))
+  if(nodeRight instanceof OperandNode && nodeRight.operand=="T")
     return nodeLeft;
   if(treeToString(nodeLeft) === treeToString(nodeRight))
     return nodeLeft;
@@ -648,24 +710,184 @@ const AndSimp = (nodeLeft,nodeRight) =>{
     if(treeToString(nodeLeft) === treeToString(nodeRight.underNode))
       return new OperandNode("F");
   }
-  
-
 }
+
 
 /*
-|Function : simplify
-|args : node 
-|return : node
-|description: simplify formula tree*/
-const simplify = node =>{
-	if(node instanceof OperandNode || node instanceof NotNode){
-  	   return node;
-  	}
-  	node.left = dnf(node.left);
-    node.right =dnf(node.right);
-    
+| Function:    removeDuplicates
+| args:        node, set
+| return:      node
+| description: Remove duplicates node
+*/
+const removeDuplicates = (node, upOperator, set) => {
+  // We are standing on operand node
+  if (node instanceof OperandNode) {
+    // The node before was not
+    if (upOperator == NOT) {
+      if (set.has(NOT + node.operand)) return null;
+      set.add(NOT + node.operand);
+    }
+    // The node before wasn't not
+    else if (upOperator != NOT) {
+      if(set.has(node.operand)) return null;
+      set.add(node.operand);
+    }
+  }
 
+  // We are standing on binary node
+  else if (node instanceof BinaryNode) {
+    let leftSet;
+    // We are standing on or node
+    
+    node.left = removeDuplicates(node.left, node.operator, set);
+    leftSet = new Set(set);
+    if (node.operator == AND) {
+      set.clear();
+    }
+    // If operator is ∧ we have to reset the set of operands
+    node.right = removeDuplicates(node.right, node.operator, set);
+    if(node.operator == AND && ((node.left instanceof BinaryNode && node.left.operator == OR)||(node.right instanceof BinaryNode && node.right.operator == OR))){
+      if(isSubSet(leftSet, set))
+       return leftSet.size > set.size ? node.right : node.left ;
+      console.log(isNotSubSet(leftSet, set));
+       if(isNotSubSet(leftSet, set)){
+        
+        if(node.left.right instanceof NotNode)
+           return node.left.left;
+        else if(node.left.left instanceof NotNode)
+             return node.left.right;
+        else if(node.right.left instanceof NotNode)
+              return node.right.right;
+        else return node.right.left;
+      }
+      else if(node.left instanceof BinaryNode && node.left.operator == OR ){
+        if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
+        return new BinaryNode(AND,node.left.right,node.right);
+      
+        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
+        return new BinaryNode(AND,node.left.left,node.right);
+              
+      }
+      else 
+         {
+          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+            return new BinaryNode(AND,node.right.right,node.left);
+        
+          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+          return new BinaryNode(AND,node.right.left,node.left);
+         }
+    }
+    if(node.operator == OR && ((node.left instanceof BinaryNode && node.left.operator == AND)||(node.right instanceof BinaryNode && node.right.operator == AND))){
+      if(isSubSet(leftSet, set))
+       return leftSet.size > set.size ? node.right : node.left ;
+       else if(node.left instanceof BinaryNode && node.left.operator == AND ){
+        if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
+        return new BinaryNode(OR,node.left.right,node.right);
+      
+        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
+        return new BinaryNode(OR,node.left.left,node.right);
+              
+      }
+      else 
+         {
+          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+            return new BinaryNode(AND,node.right.right,node.left);
+        
+          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+          return new BinaryNode(AND,node.right.left,node.left);
+         }
+    }
+    if(node.operator == OR && ((node.left instanceof BinaryNode && node.left.operator == OR)||(node.right instanceof BinaryNode && node.right.operator == OR))){
+      if(node.left instanceof BinaryNode && node.left.operator == OR ){
+        if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
+        return new OperandNode(TRUE);
+      
+        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
+        return new OperandNode(TRUE);
+              
+      }
+      else 
+         {
+          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+          return new OperandNode(TRUE);
+        
+          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+          return new OperandNode(TRUE);
+         }
+    }
+
+
+    if (isSetsEquals(leftSet, set)) return node.left;
+    
+    if(node.left instanceof NotNode && !(node.right instanceof NotNode)){// ¬Q OR Q , ¬Q AND Q
+      if(treeToString(node.left.underNode) == treeToString(node.right)){
+        if(node.operator == OR)
+          return new OperandNode(TRUE);
+        else
+          return new OperandNode(FALSE);
+      }
+    }
+    if(!(node.left instanceof NotNode) && node.right instanceof NotNode){// Q OR ¬Q , Q AND ¬Q
+      if(treeToString(node.left) == treeToString(node.right.underNode)){
+        if(node.operator == OR)
+          return new OperandNode(TRUE);
+        else
+          return new OperandNode(FALSE);
+      }
+    }
+    
+    if (node.left == null) return node.right;
+    else if (node.right == null) return node.left;
+   
+    if (node.operator == OR) {
+      if ((node.left instanceof OperandNode && node.left.operand == TRUE) || (node.right instanceof OperandNode && node.right.operand == TRUE))
+        return new OperandNode(TRUE);
+      if(node.left instanceof OperandNode && node.left.operand == FALSE)
+         return node.right; 
+      if(node.right instanceof OperandNode && node.right.operand == FALSE)
+         return node.left; 
+    }
+    // We are standing on ∧ node
+    else {
+      if ((node.left instanceof OperandNode && node.left.operand == FALSE) || (node.right instanceof OperandNode && node.right.operand == FALSE))
+        return new OperandNode(FALSE);
+      if(node.left instanceof OperandNode && node.left.operand == TRUE)
+         return node.right; 
+      if(node.right instanceof OperandNode && node.right.operand == TRUE)
+         return node.left; 
+    }
+  }
+
+  // We are standing on not node
+  else {
+    node.underNode = removeDuplicates(node.underNode, NOT, set);
+    if (node.underNode == null) return null;
+  }
+  return node;
 }
+
+
+/*
+| Function:    simplify
+| args:        node 
+| return:      node
+| description: Simplify formula tree
+*/
+const simplify = node => {
+  /** 
+   *  First of all to simplify a formula we have to change her style to more simple formula
+   *  so we choosed to change it to CNF style
+  */
+  node = impFree(node);
+  node = nnf(node);
+  node = cnf(node);
+
+  // Remove duplicates
+ 
+  node = removeDuplicates(node, null, new Set());
+  console.log(treeToString(node));
+}
+
 
 /*
 | Function:     run
@@ -702,11 +924,12 @@ const run = () => {
     }
 
     createTruthTable(firstTreeRoot, firstTreeOperandsList);
-    firstTreeRoot = impFree(firstTreeRoot);
-    firstTreeRoot = nnf(firstTreeRoot);
+    //firstTreeRoot = impFree(firstTreeRoot);
+    //firstTreeRoot = nnf(firstTreeRoot);
+    //firstTreeRoot = cnf(firstTreeRoot);
+    simplify(firstTreeRoot);
     //console.log(firstTreeRoot);
-    firstTreeRoot = dnf(firstTreeRoot);
-    console.log(treeToString(firstTreeRoot));
+    //console.log(treeToString(firstTreeRoot));
   }
   catch(e) 
   {
