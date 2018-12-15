@@ -236,7 +236,12 @@ const isSetsEquals = (set1, set2) => {
   for (let item of set1) if (!set2.has(item)) return false;
   return true;
 }
-
+/*
+|Function: isSubSet
+|args: set1,set2
+|return true/false
+|description: chaeck if one set has the other set 
+*/
 const isSubSet = (set1,set2) =>{
   if(set1.size>set2.size){
     for (let item of set2) if (!set1.has(item)) return false;
@@ -247,31 +252,36 @@ const isSubSet = (set1,set2) =>{
   return true;
   }
 }
-
+/*
+|Function: FoundNot
+|args: string item ,set
+|return true/false
+|description: chaeck is item is not of one elment in set 
+*/
+const FoundNot = (item , set)=>{
+   for(let item2 of set){
+      	if(item.substring(1,item.length+1) == item2) return true;
+      	if(item2.substring(1,item2.length+1) == item) return true;
+      }
+    return false;
+   }
+/*
+|Function: isSubSet
+|args: set1,set2
+|return true/false
+|description: chaeck if is the same set only one elment the not of 
+*/  
 const isNotSubSet = (set1,set2) =>{
   let cnt=0;
+  let flag = true;
   if (set1.size != set2.size) return false;
-  for (let item1 of set1) {
-    for(let item2 of set2){
-      if(item1 != item2 && cnt>0){
-           return false;
-          }
-       
-      //if(item1 != item2 && item1.indexOf(NOT)== -1 && item2.indexOf(NOT)==-1){ 
-       // return false;
-      //}
-
-      if(item1 != item2 && (item1.indexOf(NOT)||item2.indexOf(NOT)))
-      {
-        if(item1.length>item2.length)
-           if(item1.indexOf(item2))cnt++;
-        else 
-         if(item2.indexOf(item1))cnt++;
-      }
-      
+  for (let item of set2) {
+    if (!set1.has(item)) {
+        if(cnt > 0 || !FoundNot(item,set1)) return false;
+           else if(FoundNot(item,set1))cnt++;
+        }
     }
-  }
-  return true;
+   return true;
 }
 /*
 | Function:     addOperand
@@ -713,13 +723,16 @@ const AndSimp = (nodeLeft,nodeRight) =>{
 }
 
 
+
+
+
 /*
 | Function:    removeDuplicates
-| args:        node, set
+| args:        node, set ,flag
 | return:      node
 | description: Remove duplicates node
 */
-const removeDuplicates = (node, upOperator, set) => {
+const removeDuplicates = (node, upOperator, set,flag) => {
   // We are standing on operand node
   if (node instanceof OperandNode) {
     // The node before was not
@@ -739,19 +752,33 @@ const removeDuplicates = (node, upOperator, set) => {
     let leftSet;
     // We are standing on or node
     
-    node.left = removeDuplicates(node.left, node.operator, set);
+    node.left = removeDuplicates(node.left, node.operator, set,flag);
     leftSet = new Set(set);
-    if (node.operator == AND) {
-      set.clear();
+    if(!flag){
+      if (node.operator == AND) {
+       set.clear();
+       }
+    } else {
+        if (node.operator == OR) {
+          set.clear();
+        }
     }
+
     // If operator is ∧ we have to reset the set of operands
-    node.right = removeDuplicates(node.right, node.operator, set);
-    if(node.operator == AND && ((node.left instanceof BinaryNode && node.left.operator == OR)||(node.right instanceof BinaryNode && node.right.operator == OR))){
-      if(isSubSet(leftSet, set))
+    node.right = removeDuplicates(node.right, node.operator, set,flag);
+     
+     //Simplfy Cases
+     //1.(q OR p)AND(r OR s)
+    if(node.operator == AND && 
+    	((node.left instanceof BinaryNode && node.left.operator == OR)||
+    		(node.right instanceof BinaryNode && node.right.operator == OR))){
+
+      if(isSubSet(leftSet, set))//1.1 if the one side has the other side return it 
        return leftSet.size > set.size ? node.right : node.left ;
-      console.log(isNotSubSet(leftSet, set));
-       if(isNotSubSet(leftSet, set)){
-        
+       
+       //1.2 if one diffrence that one of them has the not of other: (¬p OR q)AND(p OR q)= q
+       if(isNotSubSet(leftSet, set)){ 
+       	// check witch node has a not 
         if(node.left.right instanceof NotNode)
            return node.left.left;
         else if(node.left.left instanceof NotNode)
@@ -760,7 +787,9 @@ const removeDuplicates = (node, upOperator, set) => {
               return node.right.right;
         else return node.right.left;
       }
+      //1.3 this case is : (¬p OR q) AND p = p AND q
       else if(node.left instanceof BinaryNode && node.left.operator == OR ){
+      	//check wich side is the not 
         if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
         return new BinaryNode(AND,node.left.right,node.right);
       
@@ -769,7 +798,7 @@ const removeDuplicates = (node, upOperator, set) => {
               
       }
       else 
-         {
+         {//check wich side is the not 
           if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
             return new BinaryNode(AND,node.right.right,node.left);
         
@@ -777,10 +806,17 @@ const removeDuplicates = (node, upOperator, set) => {
           return new BinaryNode(AND,node.right.left,node.left);
          }
     }
-    if(node.operator == OR && ((node.left instanceof BinaryNode && node.left.operator == AND)||(node.right instanceof BinaryNode && node.right.operator == AND))){
-      if(isSubSet(leftSet, set))
-       return leftSet.size > set.size ? node.right : node.left ;
-       else if(node.left instanceof BinaryNode && node.left.operator == AND ){
+
+    //2. (p AND q) OR (r AND s)
+    if(node.operator == OR && 
+    	((node.left instanceof BinaryNode && node.left.operator == AND)||
+    		(node.right instanceof BinaryNode && node.right.operator == AND))){
+       if(isSubSet(leftSet, set)){//2.1 if one side has the other side return it
+         return leftSet.size > set.size ? node.right : node.left ;
+         }
+      
+       //2.2 (¬p AND q) OR p = q OR p
+       else if(node.left instanceof BinaryNode && node.left.operator == AND ){// found a NOt node
         if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
         return new BinaryNode(OR,node.left.right,node.right);
       
@@ -788,7 +824,7 @@ const removeDuplicates = (node, upOperator, set) => {
         return new BinaryNode(OR,node.left.left,node.right);
               
       }
-      else 
+      else // found a NOt node
          {
           if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
             return new BinaryNode(AND,node.right.right,node.left);
@@ -797,8 +833,12 @@ const removeDuplicates = (node, upOperator, set) => {
           return new BinaryNode(AND,node.right.left,node.left);
          }
     }
-    if(node.operator == OR && ((node.left instanceof BinaryNode && node.left.operator == OR)||(node.right instanceof BinaryNode && node.right.operator == OR))){
-      if(node.left instanceof BinaryNode && node.left.operator == OR ){
+    //3. p OR q OR s OR t
+    if(node.operator == OR && 
+    	((node.left instanceof BinaryNode && node.left.operator == OR)||
+    		(node.right instanceof BinaryNode && node.right.operator == OR))){
+      //3.1 ¬p OR q OR p = T 
+      if(node.left instanceof BinaryNode && node.left.operator == OR ){//found it 
         if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
         return new OperandNode(TRUE);
       
@@ -806,7 +846,7 @@ const removeDuplicates = (node, upOperator, set) => {
         return new OperandNode(TRUE);
               
       }
-      else 
+      else //found it 
          {
           if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
           return new OperandNode(TRUE);
@@ -816,10 +856,11 @@ const removeDuplicates = (node, upOperator, set) => {
          }
     }
 
-
+     // 4. if the left side is the same at the right side return one of them : q AND q , q OR q = q
     if (isSetsEquals(leftSet, set)) return node.left;
     
-    if(node.left instanceof NotNode && !(node.right instanceof NotNode)){// ¬Q OR Q , ¬Q AND Q
+    //5. the left side are not the right side 
+    if(node.left instanceof NotNode && !(node.right instanceof NotNode)){//5.1 ¬Q OR Q = T, ¬Q AND Q = F
       if(treeToString(node.left.underNode) == treeToString(node.right)){
         if(node.operator == OR)
           return new OperandNode(TRUE);
@@ -827,7 +868,8 @@ const removeDuplicates = (node, upOperator, set) => {
           return new OperandNode(FALSE);
       }
     }
-    if(!(node.left instanceof NotNode) && node.right instanceof NotNode){// Q OR ¬Q , Q AND ¬Q
+
+    if(!(node.left instanceof NotNode) && node.right instanceof NotNode){//5.2  Q OR ¬Q = T, Q AND ¬Q = F
       if(treeToString(node.left) == treeToString(node.right.underNode)){
         if(node.operator == OR)
           return new OperandNode(TRUE);
@@ -839,19 +881,23 @@ const removeDuplicates = (node, upOperator, set) => {
     if (node.left == null) return node.right;
     else if (node.right == null) return node.left;
    
+    //6. if one of them false or true and the operator is OR 
     if (node.operator == OR) {
-      if ((node.left instanceof OperandNode && node.left.operand == TRUE) || (node.right instanceof OperandNode && node.right.operand == TRUE))
+      if ((node.left instanceof OperandNode && node.left.operand == TRUE) || 
+      	(node.right instanceof OperandNode && node.right.operand == TRUE))//T OR q , q OR T =T
         return new OperandNode(TRUE);
-      if(node.left instanceof OperandNode && node.left.operand == FALSE)
+      if(node.left instanceof OperandNode && node.left.operand == FALSE)//F OR q = q
          return node.right; 
-      if(node.right instanceof OperandNode && node.right.operand == FALSE)
+      if(node.right instanceof OperandNode && node.right.operand == FALSE)//q OR F = q
          return node.left; 
     }
     // We are standing on ∧ node
+    //7. if one of them false or true
     else {
-      if ((node.left instanceof OperandNode && node.left.operand == FALSE) || (node.right instanceof OperandNode && node.right.operand == FALSE))
+      if ((node.left instanceof OperandNode && node.left.operand == FALSE) || 
+      	(node.right instanceof OperandNode && node.right.operand == FALSE))// F AND q = F
         return new OperandNode(FALSE);
-      if(node.left instanceof OperandNode && node.left.operand == TRUE)
+      if(node.left instanceof OperandNode && node.left.operand == TRUE) // T AND q = q
          return node.right; 
       if(node.right instanceof OperandNode && node.right.operand == TRUE)
          return node.left; 
@@ -860,7 +906,7 @@ const removeDuplicates = (node, upOperator, set) => {
 
   // We are standing on not node
   else {
-    node.underNode = removeDuplicates(node.underNode, NOT, set);
+    node.underNode = removeDuplicates(node.underNode, NOT, set,flag);
     if (node.underNode == null) return null;
   }
   return node;
@@ -880,12 +926,20 @@ const simplify = node => {
   */
   node = impFree(node);
   node = nnf(node);
-  node = cnf(node);
+  let node2 = node; 
 
-  // Remove duplicates
- 
-  node = removeDuplicates(node, null, new Set());
-  console.log(treeToString(node));
+  node2 = cnf(node2);//simplify cnf 
+  console.log(treeToString(node2));
+  node2 = removeDuplicates(node2, null, new Set(),false);
+  console.log("=");
+  console.log(treeToString(node2));
+
+  node2 = node;
+  node2 = dnf(node2);//simplify dnf 
+  console.log(treeToString(node2));
+  node2 = removeDuplicates(node2, null, new Set(),true);
+  console.log("=");
+  console.log(treeToString(node2));
 }
 
 
