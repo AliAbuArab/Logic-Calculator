@@ -15,3 +15,7 @@ img {
 .jumbotron {
     padding: 2rem 1rem;
 }
+
+#cnf, #dnf {
+    display: none;
+}

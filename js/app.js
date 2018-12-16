@@ -236,40 +236,46 @@ const isSetsEquals = (set1, set2) => {
   for (let item of set1) if (!set2.has(item)) return false;
   return true;
 }
+
+
 /*
-|Function: isSubSet
-|args: set1,set2
-|return true/false
-|description: chaeck if one set has the other set 
+| Function:    isSubSet
+| args:        set1,set2
+| return:      true/false
+| description: chaeck if one set has the other set 
 */
-const isSubSet = (set1,set2) =>{
-  if(set1.size>set2.size){
+const isSubSet = (set1, set2) => {
+  if (set1.size>set2.size) {
     for (let item of set2) if (!set1.has(item)) return false;
-  return true;
+    return true;
   }
-  else{
+  else {
     for (let item of set1) if (!set2.has(item)) return false;
-  return true;
+    return true;
   }
 }
+
+
 /*
-|Function: FoundNot
-|args: string item ,set
-|return true/false
-|description: chaeck is item is not of one elment in set 
+| Function:    FoundNot
+| args:        string item ,set
+| return:      true/false
+| description: chaeck is item is not of one elment in set 
 */
-const FoundNot = (item , set)=>{
-   for(let item2 of set){
-      	if(item.substring(1,item.length+1) == item2) return true;
-      	if(item2.substring(1,item2.length+1) == item) return true;
-      }
-    return false;
-   }
+const FoundNot = (item , set) => {
+  for (let item2 of set) {
+    if(item.substring(1,item.length+1) == item2) return true;
+    if(item2.substring(1,item2.length+1) == item) return true;
+  }
+  return false;
+}
+
+
 /*
-|Function: isSubSet
-|args: set1,set2
-|return true/false
-|description: chaeck if is the same set only one elment the not of 
+| Function:    isSubSet
+| args:        set1,set2
+| return:      true/false
+| description: chaeck if is the same set only one elment the not of 
 */  
 const isNotSubSet = (set1,set2) =>{
   let cnt=0;
@@ -277,12 +283,14 @@ const isNotSubSet = (set1,set2) =>{
   if (set1.size != set2.size) return false;
   for (let item of set2) {
     if (!set1.has(item)) {
-        if(cnt > 0 || !FoundNot(item,set1)) return false;
-           else if(FoundNot(item,set1))cnt++;
-        }
+      if(cnt > 0 || !FoundNot(item,set1)) return false;
+      else if (FoundNot(item,set1)) cnt++;
     }
-   return true;
+  }
+  return true;
 }
+
+
 /*
 | Function:     addOperand
 | args:         node, operandsStack, operatorsStack
@@ -613,13 +621,17 @@ const cnf = node => {
   if (node instanceof OperandNode || node instanceof NotNode)
   	return node;
   
-  if (node.operator == OR &&(node.left.operator == AND || node.right.operator == AND))
+  if (node.operator == OR && 
+    ((node.left instanceof BinaryNode && node.left.operator == AND) 
+    || (node.right instanceof BinaryNode && node.right.operator == AND)))
   	node = cnfDistr(node.left, node.right);
   
   node.left = cnf(node.left);
-  node.right =cnf(node.right);
+  node.right = cnf(node.right);
   
-  if (node.operator == OR &&(node.left.operator == AND || node.right.operator == AND))
+  if (node.operator == OR && 
+    ((node.left instanceof BinaryNode && node.left.operator == AND) 
+    || (node.right instanceof BinaryNode && node.right.operator == AND)))
   	node = cnfDistr(node.left, node.right);
   return node;
 }
@@ -652,17 +664,21 @@ const dnfDistr = (nodeLeft, nodeRight) =>{
 | description:  return the formula formatted to DNF style
 */
 const dnf = node => {
-  if (node instanceof OperandNode || node instanceof NotNode)
+  if (node instanceof OperandNode || node instanceof NotNode || node == null)
   	return node;
   
-  if (node.operator == AND && (node.left.operator == OR || node.right.operator == OR))
-  	node = ddistr(node.left, node.right);
+  if (node.operator == OR && 
+    ((node.left instanceof BinaryNode && node.left.operator == AND) 
+    || (node.right instanceof BinaryNode && node.right.operator == AND)))
+  	node = dnfDistr(node.left, node.right);
   
   node.left = dnf(node.left);
   node.right = dnf(node.right);
   
-  if (node.operator == AND && (node.left.operator == OR || node.right.operator == OR))
-  	node = ddistr(node.left, node.right);
+  if (node.operator == OR && 
+    ((node.left instanceof BinaryNode && node.left.operator == AND) 
+    || (node.right instanceof BinaryNode && node.right.operator == AND)))
+  	node = dnfDistr(node.left, node.right);
   
   return node;
 }
@@ -723,9 +739,6 @@ const AndSimp = (nodeLeft,nodeRight) =>{
 }
 
 
-
-
-
 /*
 | Function:    removeDuplicates
 | args:        node, set ,flag
@@ -751,17 +764,12 @@ const removeDuplicates = (node, upOperator, set,flag) => {
   else if (node instanceof BinaryNode) {
     let leftSet;
     // We are standing on or node
-    
     node.left = removeDuplicates(node.left, node.operator, set,flag);
     leftSet = new Set(set);
-    if(!flag){
-      if (node.operator == AND) {
-       set.clear();
-       }
+    if (!flag) {
+      if (node.operator == AND) set.clear();
     } else {
-        if (node.operator == OR) {
-          set.clear();
-        }
+      if (node.operator == OR) set.clear();
     }
 
     // If operator is ∧ we have to reset the set of operands
@@ -789,25 +797,32 @@ const removeDuplicates = (node, upOperator, set,flag) => {
       }
       //1.3 this case is : (¬p OR q) AND p = p AND q
       else if(node.left instanceof BinaryNode && node.left.operator == OR ){
-      	//check wich side is the not 
-        if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
-        return new BinaryNode(AND,node.left.right,node.right);
+        //check wich side is the not 
+        console.log(node.left.left.underNode);
+        console.log(node.right);
+        if (node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
+          return new BinaryNode(AND,node.left.right,node.right);
       
-        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
-        return new BinaryNode(AND,node.left.left,node.right);
-              
+        console.log(node.left.right.underNode);
+        console.log(node.right);
+        if (node.left.right instanceof NotNode && treeToString(node.left.right.underNode) == treeToString(node.right))
+          return new BinaryNode(AND,node.left.left,node.right);    
       }
       else 
-         {//check wich side is the not 
-          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
-            return new BinaryNode(AND,node.right.right,node.left);
-        
-          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+      {//check wich side is the not 
+        console.log(node.right.left.underNode);
+        console.log(node.left);
+        if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+          return new BinaryNode(AND,node.right.right,node.left);
+      
+        console.log(node.right.right.underNode);
+        console.log(node.left);
+        if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
           return new BinaryNode(AND,node.right.left,node.left);
-         }
+      }
     }
     //2. (p AND q) OR (r AND s)
-    if(node.operator == OR && 
+    if (node.operator == OR && 
     	((node.left instanceof BinaryNode && node.left.operator == AND)||
     		(node.right instanceof BinaryNode && node.right.operator == AND))){
        if(isSubSet(leftSet, set)){//2.1 if one side has the other side return it
@@ -815,44 +830,56 @@ const removeDuplicates = (node, upOperator, set,flag) => {
          }
       
        //2.2 (¬p AND q) OR p = q OR p
-       else if(node.left instanceof BinaryNode && node.left.operator == AND ){// found a NOt node
+       else if(node.left instanceof BinaryNode && node.left.operator == AND ) { // found a NOt node
+        console.log(node.left.left.underNode);
+        console.log(node.right);
         if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
-        return new BinaryNode(OR,node.left.right,node.right);
+          return new BinaryNode(OR,node.left.right,node.right);
       
-        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
-        return new BinaryNode(OR,node.left.left,node.right);
-              
+        console.log(node.left.right.underNode);
+        console.log(node.right);
+        if(node.left.right instanceof NotNode && treeToString(node.left.right.underNode) == treeToString(node.right))
+          return new BinaryNode(OR,node.left.left,node.right);        
       }
       else // found a NOt node
-         {
-          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
-            return new BinaryNode(AND,node.right.right,node.left);
-        
-          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+      {
+        console.log(node.right.left.underNode);
+        console.log(node.left);
+        if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+          return new BinaryNode(AND,node.right.right,node.left);
+      
+        console.log(node.right.right.underNode);
+        console.log(node.left);
+        if(node.right.right instanceof NotNode && treeToString(node.right.right.underNode) == treeToString(node.left))
           return new BinaryNode(AND,node.right.left,node.left);
-         }
+      }
     }
     //3. p OR q OR s OR t
-    if(node.operator == OR && 
-    	((node.left instanceof BinaryNode && node.left.operator == OR)||
-    		(node.right instanceof BinaryNode && node.right.operator == OR))){
+    if (node.operator == OR 
+      && ((node.left instanceof BinaryNode && node.left.operator == OR)
+      || (node.right instanceof BinaryNode && node.right.operator == OR))) 
+    {
       //3.1 ¬p OR q OR p = T 
-      if(node.left instanceof BinaryNode && node.left.operator == OR ){//found it 
-        if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
-        return new OperandNode(TRUE);
-      
-        if(node.left.right instanceof NotNode&&treeToString(node.left.right.underNode) == treeToString(node.right))
-        return new OperandNode(TRUE);
-              
+      if (node.left instanceof BinaryNode && node.left.operator == OR) //found it 
+      {
+        if (node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
+          return new OperandNode(TRUE);
+    
+        if (node.left.right instanceof NotNode && treeToString(node.left.right.underNode) == treeToString(node.right))
+          return new OperandNode(TRUE); 
       }
       else //found it 
-         {
-          if(node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
+      {
+        console.log(node.right.left.underNode);
+        console.log(node.left);
+        if (node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
           return new OperandNode(TRUE);
-        
-          if(node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
+      
+        console.log(node.right.right.underNode);
+        console.log(node.left);
+        if (node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
           return new OperandNode(TRUE);
-         }
+      }
     }
 
      // 4. if the left side is the same at the right side return one of them : q AND q , q OR q = q
@@ -913,6 +940,22 @@ const removeDuplicates = (node, upOperator, set,flag) => {
 
 
 /*
+| Function:    cloneTree
+| args:        node 
+| return:      node
+| description: cloning tree
+*/
+const cloneTree = node => {
+  // The node is OperandNode
+  if (node instanceof OperandNode) return new OperandNode(node.operand);
+  // The node is NotNode
+  else if (node instanceof NotNode) return new NotNode(cloneTree(node.underNode));
+  // The node is BinaryNode
+  return new BinaryNode(node.operator, cloneTree(node.left),cloneTree(node.right));
+}
+
+
+/*
 | Function:    simplify
 | args:        node 
 | return:      node
@@ -926,18 +969,20 @@ const simplify = node => {
   let strc,strd;
   node = impFree(node);
   node = nnf(node);
-  let node2 = node; 
 
-  node2 = cnf(node2);//simplify cnf 
-  strc = treeToString(node2) + " = ";
-  node2 = removeDuplicates(node2, null, new Set(),false);
-  strc+=treeToString(node2);
-
-  node2 = node;
-  node2 = dnf(node2);//simplify dnf 
-  strd = treeToString(node2) + " = ";
-  node2 = removeDuplicates(node2, null, new Set(),true);
-  strd+=treeToString(node2);
+  //let node2 = cloneTree(node);
+  node = dnf(node); // Simplify DNF 
+  strd = treeToString(node) + " = ";
+  node = removeDuplicates(node, null, new Set(),true);
+  strd+=treeToString(node);
+  
+  //node = cnf(node); // Simplify CNF
+  //strc = treeToString(node) + " = ";
+  //node = removeDuplicates(node, null, new Set(),false);
+  //strc += treeToString(node);
+  strc ="q";
+  //node = cloneTree(node);
+  
   return {strc,strd};
 }
 
@@ -981,15 +1026,16 @@ const run = () => {
     //firstTreeRoot = nnf(firstTreeRoot);
     //firstTreeRoot = cnf(firstTreeRoot);
     const ret = simplify(firstTreeRoot);
-    const cnftext = document.getElementById("cnftext");
-    cnftext.value = ret.strc;
-    const dnftext = document.getElementById("dnftext");
-    dnftext.value = ret.strd;
-    //console.log(firstTreeRoot);
-    //console.log(treeToString(firstTreeRoot));
+    const cnfText = document.getElementById("cnfText");
+    cnfText.value = ret.strc;
+    document.getElementById("cnf").style.display = "block";
+    const dnfText = document.getElementById("dnfText");
+    dnfText.value = ret.strd;
+    document.getElementById("dnf").style.display = "block";
   }
   catch(e) 
   {
+    console.log("line = " + e.line);
     error(e); // Show the error in red error message div
   }
 }
