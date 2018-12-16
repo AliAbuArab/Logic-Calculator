@@ -806,7 +806,6 @@ const removeDuplicates = (node, upOperator, set,flag) => {
           return new BinaryNode(AND,node.right.left,node.left);
          }
     }
-
     //2. (p AND q) OR (r AND s)
     if(node.operator == OR && 
     	((node.left instanceof BinaryNode && node.left.operator == AND)||
@@ -924,22 +923,22 @@ const simplify = node => {
    *  First of all to simplify a formula we have to change her style to more simple formula
    *  so we choosed to change it to CNF style
   */
+  let strc,strd;
   node = impFree(node);
   node = nnf(node);
   let node2 = node; 
 
   node2 = cnf(node2);//simplify cnf 
-  console.log(treeToString(node2));
+  strc = treeToString(node2) + " = ";
   node2 = removeDuplicates(node2, null, new Set(),false);
-  console.log("=");
-  console.log(treeToString(node2));
+  strc+=treeToString(node2);
 
   node2 = node;
   node2 = dnf(node2);//simplify dnf 
-  console.log(treeToString(node2));
+  strd = treeToString(node2) + " = ";
   node2 = removeDuplicates(node2, null, new Set(),true);
-  console.log("=");
-  console.log(treeToString(node2));
+  strd+=treeToString(node2);
+  return {strc,strd};
 }
 
 
@@ -981,7 +980,11 @@ const run = () => {
     //firstTreeRoot = impFree(firstTreeRoot);
     //firstTreeRoot = nnf(firstTreeRoot);
     //firstTreeRoot = cnf(firstTreeRoot);
-    simplify(firstTreeRoot);
+    const ret = simplify(firstTreeRoot);
+    const cnftext = document.getElementById("cnftext");
+    cnftext.value = ret.strc;
+    const dnftext = document.getElementById("dnftext");
+    dnftext.value = ret.strd;
     //console.log(firstTreeRoot);
     //console.log(treeToString(firstTreeRoot));
   }
