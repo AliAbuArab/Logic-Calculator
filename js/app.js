@@ -42,7 +42,6 @@ class OperandNode {
   }
 }
 
-
 class NotNode {
   // constructor
   constructor(underNode) { 
@@ -255,6 +254,14 @@ const isSubSet = (set1, set2) => {
   }
 }
 
+const hasTrue = set =>{
+	if(set.has("T"))return true;
+	return false;
+}
+const hasFalse = set =>{
+   if(set.has("F"))return true;
+	return false;
+}
 
 /*
 | Function:    FoundNot
@@ -264,13 +271,20 @@ const isSubSet = (set1, set2) => {
 */
 const FoundNot = (item , set) => {
   for (let item2 of set) {
-    if(item.substring(1,item.length+1) == item2) return true;
-    if(item2.substring(1,item2.length+1) == item) return true;
+    if(item.substring(1,item.length) == item2) return true;
+    if(item2.substring(1,item2.length) == item) return true;
   }
   return false;
 }
 
-
+const isNotset = (set1,set2) =>{
+  for (let item of set2) 
+    if (!set1.has(item)) 
+    	if (FoundNot(item,set1)) {
+    		return true;
+    	}
+   return false;
+}
 /*
 | Function:    isSubSet
 | args:        set1,set2
@@ -438,7 +452,8 @@ const readFormula = formula => {
 | return:       None
 | description:  Fill the table's body
 */
-const fillTruthTableRecursively = (i, operandsList, treeRoot, tableBody) => {
+const fillTruthTableRecursively = (i, operandsList, treeRoot1,treeRoot2, tableBody,symmequ) => {
+  let res1,res2;
   // Iterate number of rows
   if (i == 2**operandsList.length) return;
 
@@ -465,11 +480,16 @@ const fillTruthTableRecursively = (i, operandsList, treeRoot, tableBody) => {
   }
   // Fill the last column of each row that have the result of assignement (T/F) in formula
   const col = document.createElement("td");
-  col.innerHTML = treeRoot.calc(operandsValueMap) ? "T" : "F";
+  col.innerHTML = treeRoot1.calc(operandsValueMap) ? "T" : "F";
+  if(treeRoot2!=null){
+  	res1= treeRoot1.calc(operandsValueMap) ? "T" : "F";
+  	res2= treeRoot2.calc(operandsValueMap)? "T" : "F";
+  }
   row.appendChild(col);         // Add the result of calculation to the row
   tableBody.appendChild(row);   // Add the new result row to the table
-
-  fillTruthTableRecursively(i+1, operandsList, treeRoot, tableBody);
+   if(res1!=res2)symmequ.equiv=false;
+   if(res1=="T"&&res2=="F")symmequ.symm=false;
+  fillTruthTableRecursively(i+1, operandsList, treeRoot1,treeRoot2, tableBody,symmequ);
 }
 
 
@@ -479,7 +499,7 @@ const fillTruthTableRecursively = (i, operandsList, treeRoot, tableBody) => {
 | return:       None
 | description:  Create the truth table
 */
-const createTruthTable = (treeRoot, operandsList) => {
+const createTruthTable = (treeRoot, operandsList,treeRoot2) => {
   removeTruthTable();                                     // Remove the last truth table
   const table = document.createElement("table");          // Create new HTML table element
   table.setAttribute("id", "truthTable");                 // Set id for the truth table
@@ -503,15 +523,34 @@ const createTruthTable = (treeRoot, operandsList) => {
   // Add the heading to the table
   tableHeader.appendChild(row);
   table.appendChild(tableHeader);
-
+   
+  let symmequ={symm:true,equiv:true};
   // Fill the body of truth table
-  fillTruthTableRecursively(0, operandsList, treeRoot, tableBody);
+  fillTruthTableRecursively(0, operandsList, treeRoot,treeRoot2,tableBody,symmequ);
   
   table.appendChild(tableBody); // Add table's body for the table
   content.appendChild(table);   // Add the table to the HTML document
+  return symmequ;
 }
 
+const lessParenthesis = str =>{
+    let i,cnt=0,j;
+    str=str.slice(1,str.length);
+    str=str.slice(0,str.length-1);
+	for(i=0;i<str.length-1;i++){
+		
+		/*if(str.charAt(i)=='(' && str.charAt(i+1)=='('){
+          cnt++;
+          str=str.slice(0,i)+str.slice(i+1,str.length);
+		}
+		if(str.charAt(i)==')'&&cnt>0){
+			cnt--;
+			str=str.slice(0,i)+str.slice(i+1,str.length);
+		}*/
 
+	}
+	return str;
+}
 /*
 | Function:     treeToString
 | args:         node
@@ -740,7 +779,6 @@ const AndSimp = (nodeLeft,nodeRight) =>{
   }
 }
 
-
 /*
 | Function:    removeDuplicates
 | args:        node, set ,flag
@@ -822,6 +860,13 @@ const removeDuplicates = (node, upOperator, set,flag) => {
        if(isSubSet(leftSet, set)){//2.1 if one side has the other side return it
          return leftSet.size > set.size ? node.right : node.left ;
          }
+         //2.2 if one diffrence that one of them has the not of other: (¬p AND q)OR(p AND q)= 
+       if(isNotSubSet(leftSet, set)){ 
+       	// check witch node has a not 
+        if(node.left.right instanceof NotNode||node.left.left instanceof NotNode)
+           return node.right;
+        else return node.left;
+       }
        //2.2 (¬p AND q) OR p = q OR p
        else if(node.left instanceof BinaryNode && node.left.operator == AND ) { // found a NOt node
         if(node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
@@ -842,47 +887,17 @@ const removeDuplicates = (node, upOperator, set,flag) => {
     //3. p OR q OR s OR t
     if (node.operator == OR 
       && ((node.left instanceof BinaryNode && node.left.operator == OR)
-      || (node.right instanceof BinaryNode && node.right.operator == OR))) 
-    {
-      //3.1 ¬p OR q OR p = T 
-      if (node.left instanceof BinaryNode && node.left.operator == OR) //found it 
-      {
-        if (node.left.left instanceof NotNode && treeToString(node.left.left.underNode) == treeToString(node.right))
-          return new OperandNode(TRUE);
-    
-        if (node.left.right instanceof NotNode && treeToString(node.left.right.underNode) == treeToString(node.right))
-          return new OperandNode(TRUE); 
-      }
-      else //found it 
-      {
-        if (node.right.left instanceof NotNode && treeToString(node.right.left.underNode) == treeToString(node.left))
-          return new OperandNode(TRUE);
-      
-        if (node.right.right instanceof NotNode &&treeToString(node.right.right.underNode) == treeToString(node.left))
-          return new OperandNode(TRUE);
-      }
-    }
+      || (node.right instanceof BinaryNode && node.right.operator == OR)))        
+            if(isNotset(leftSet,set)) return new OperandNode(TRUE);
+
 
      // 4. if the left side is the same at the right side return one of them : q AND q , q OR q = q
     if (isSetsEquals(leftSet, set)) return node.left;
     
     //5. the left side are not the right side 
-    if(node.left instanceof NotNode && !(node.right instanceof NotNode)){//5.1 ¬Q OR Q = T, ¬Q AND Q = F
-      if(treeToString(node.left.underNode) == treeToString(node.right)){
-        if(node.operator == OR)
-          return new OperandNode(TRUE);
-        else
-          return new OperandNode(FALSE);
-      }
-    }
-
-    if(!(node.left instanceof NotNode) && node.right instanceof NotNode){//5.2  Q OR ¬Q = T, Q AND ¬Q = F
-      if(treeToString(node.left) == treeToString(node.right.underNode)){
-        if(node.operator == OR)
-          return new OperandNode(TRUE);
-        else
-          return new OperandNode(FALSE);
-      }
+    if(isNotSubSet(leftSet,set)){
+    	if(node.operator == OR) return new OperandNode(TRUE);
+        else return new OperandNode(FALSE);
     }
     
     if (node.left == null) return node.right;
@@ -890,31 +905,23 @@ const removeDuplicates = (node, upOperator, set,flag) => {
    
     //6. if one of them false or true and the operator is OR 
     if (node.operator == OR) {
-      if ((node.left instanceof OperandNode && node.left.operand == TRUE) || 
-      	(node.right instanceof OperandNode && node.right.operand == TRUE))//T OR q , q OR T =T
-        return new OperandNode(TRUE);
-      if(node.left instanceof OperandNode && node.left.operand == FALSE)//F OR q = q
-         return node.right; 
-      if(node.right instanceof OperandNode && node.right.operand == FALSE)//q OR F = q
-         return node.left; 
+      if(hasTrue(leftSet)||hasTrue(set))return new OperandNode(TRUE);
+      if(hasFalse(leftSet))return node.right;
+      if(hasFalse(set))return node.left;
     }
     // We are standing on ∧ node
     //7. if one of them false or true
     else {
-      if ((node.left instanceof OperandNode && node.left.operand == FALSE) || 
-      	(node.right instanceof OperandNode && node.right.operand == FALSE))// F AND q = F
-        return new OperandNode(FALSE);
-      if(node.left instanceof OperandNode && node.left.operand == TRUE) // T AND q = q
-         return node.right; 
-      if(node.right instanceof OperandNode && node.right.operand == TRUE)
-         return node.left; 
+      if(hasFalse(leftSet)||hasFalse(set))return new OperandNode(FALSE);
+      if(hasTrue(leftSet))return node.right;
+      if(hasTrue(set))return node.left;
     }
   }
 
   // We are standing on not node
   else {
-    node.underNode = removeDuplicates(node.underNode, NOT, set,flag);
-    if (node.underNode == null) return null;
+  	 if (node.underNode == null) return null; 
+    node.underNode = removeDuplicates(node.underNode, NOT, set,flag);  
   }
   return node;
 }
@@ -954,16 +961,27 @@ const simplify = node => {
   
   let node2 = cloneTree(node);
   node2 = dnf(node2); // Simplify DNF 
-  strd = treeToString(node2) + " = ";
+  strd = treeToString(node2)+ " = ";
   node2 = removeDuplicates(node2, null, new Set(),true);
-  strd+=treeToString(node2);
   
   let node3 = cloneTree(node);
   node3 = cnf(node3); // Simplify CNF
   strc = treeToString(node3) + " = ";
   node3 = removeDuplicates(node3, null, new Set(),false);
-  strc += treeToString(node3);
-  
+
+ /* if(treeToString(node2).indexOf(OR)==-1||treeToString(node2).indexOf(AND)==-1){
+  	 strd+=treeToString(node2);
+     strc += treeToString(node2);
+  }
+  else if(treeToString(node3).indexOf(OR)==-1||treeToString(node3).indexOf(AND)==-1){
+  	 strd+=treeToString(node3);
+     strc += treeToString(node3);
+  }
+  else{*/
+    strd+=treeToString(node2);
+    strc += treeToString(node3);
+  //}
+  console.log(strc);
   return {strc,strd};
 }
 
@@ -1001,8 +1019,13 @@ const run = () => {
       [firstTreeRoot, firstTreeOperandsList] = readFormula(leftSide); 
       [secondTreeRoot, secondTreeOperandsList] = readFormula(rightSide);
     }
-
-    createTruthTable(firstTreeRoot, firstTreeOperandsList);
+    let symeq;
+    if(firstTreeOperandsList.length>secondTreeOperandsList)
+       symeq=createTruthTable(firstTreeRoot, firstTreeOperandsList,secondTreeRoot);
+    else 
+   	   symeq=createTruthTable(firstTreeRoot, secondTreeOperandsList,secondTreeRoot);
+   	
+   	console.log(symeq);
     //firstTreeRoot = impFree(firstTreeRoot);
     //firstTreeRoot = nnf(firstTreeRoot);
     //firstTreeRoot = cnf(firstTreeRoot);
