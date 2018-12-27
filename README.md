@@ -1,1 +1,1 @@
-# Logical-Calculator
+# Logic-Calculator
