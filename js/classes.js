@@ -21,8 +21,8 @@ class SuperClass {
    */
   treeToString(node, upOperator) {
     let str = "";
-    if (node instanceof OperandNode) return node.operand;
-    if (node instanceof NotNode) return NOT + this.treeToString(node.underNode, null);
+    if (node.isUnary()) return node.operand;
+    if (node.isNot()) return NOT + this.treeToString(node.underNode, null);
     if (upOperator != null && node.operator != upOperator) str += '(';
     str += this.treeToString(node.left, node.operator) + node.operator + this.treeToString(node.right, node.operator);
     if (upOperator != null && node.operator != upOperator) str += ')';

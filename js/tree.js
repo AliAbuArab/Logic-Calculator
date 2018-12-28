@@ -3,29 +3,6 @@
 //  -------------------------------------------------
 
 /**
- * @description Swapping between UnaryNode and BinaryNode and let the UnaryNode on right the side 
- * Call it after CNF/DNF formatting
- * @param {object} node 
- * @returns {object} node
- */
-function makeOperandsOnRight(node) {
-  // We are standing on operand node
-  if (node.isUnary() || node.isNot())
-    return node;
-  // We are standing on binary node
-  node.left = makeOperandsOnRight(node.left);
-  node.right = makeOperandsOnRight(node.right);
-  if (node.left.isUnary() && node.right.isBinary())
-  {
-    const tmp = node.left;
-    node.left = node.right;
-    node.right = tmp;
-  }
-  return node;
-}
-
-
-/**
  * @description Run impFree and nnf on the tree
  * @param {object} node 
  * @returns {object} node
@@ -42,6 +19,45 @@ function impFree_nnf(node) {
   node = nnf(node); 
   node.updateOperandsList();
   return node;
+}
+
+/**
+ * @description Separate the operands that in AND node and that in OR node
+ * @param {object} node 
+ * @param {string} upOperator
+ * @param {Array} andList 
+ * @param {Array} orList
+ * @param {Set} set
+ */
+function separate(node, upOperator, andList, orList, set) {
+  // Standing on operand | T | F node
+  if (node.isUnary()) set.add(node.operand);
+  // Standing on not node
+  else if (node.isNot()) set.add(NOT + node.underNode.operand);
+  // Standing on binary node
+  else
+  {
+    if (set.size && node.left.isBinary() && node.left.operator != node.operator)
+    {
+      if (node.isOr()) orList.push(new Set(set));
+      else andList.push(new Set(set));
+      set.clear();
+    }
+    separate(node.left, node.operator, andList, orList, set);
+    if (set.size && node.right.isBinary() && node.right.operator != node.operator)
+    {
+      if (node.isOr()) orList.push(new Set(set));
+      else andList.push(new Set(set));
+      set.clear();
+    }
+    separate(node.right, node.operator, andList, orList, set);
+    if (set.size && node.operator != upOperator)
+    {
+      if (node.isOr()) orList.push(new Set(set));
+      else andList.push(new Set(set));
+      set.clear();
+    }
+  } 
 }
 
 
@@ -126,54 +142,24 @@ function simplifyHelper(node, set, upOperator) {
  * @returns {JSON} node
  */
 function simplify(node) {
-  node = node.sort();
-  // console.log(node);
+
+  // console.log(node.operandsList);
   // return;
-  // const clone = node.clone();
-  // const andList = [];
-  // const orList = [];
-  // separate(clone, andList, orList);
-  // console.log("andList:");
-  // console.log(andList);
-  // console.log("orList:");
-  // console.log(orList);
+
+  // node = node.sort();
+  const andList = [];   // Play like DNF
+  const orList = [];    // Play like CNF
+  separate(node, null, andList, orList, new Set);
+  console.log("andList:");
+  console.log(andList);
+  console.log("orList:");
+  console.log(orList);
+
+
   // node = simplifyHelper(node, new Set, null);
   return node.toString();
 }
 
-
-
-function separate(node, andList, orList) {
-  // We are standing on unary node
-  if (node.isUnary() || node.isNot()) return node;
-
-  // We are standing on binary node
-  node.left = separate(node.left, andList, orList);
-  node.right = separate(node.right, andList, orList);
-
-  let lhs = null, rhs = null;
-  if (node.left.isUnary()) lhs = node.left.operand;
-  if (node.left.isNot()) lhs = NOT + node.underNode;
-
-  if (node.right.isUnary()) rhs = node.right.operand;
-  if (node.right.isNot()) rhs = NOT + node.underNode;
-
-  if (lhs == null && rhs == null) return node;
-
-  if (node.isAnd()) 
-  {
-    if (lhs != null && rhs == null) andList.push(lhs);
-    else if (lhs == null && rhs != null) andList.push(rhs);
-    andList.push([lhs, rhs]);
-  }
-  else 
-  {
-    if (lhs != null && rhs == null) orList.push(lhs);
-    else if (lhs == null && rhs != null) orList.push(rhs);
-    orList.push([lhs, rhs]);
-  }
-  return node;
-}
 
 
 

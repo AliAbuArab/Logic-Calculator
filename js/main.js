@@ -32,17 +32,10 @@ function run() {
             DNF_Tree = tree.clone();                    // Cloninig original tree to formatting it to DNF style 
             CNF_Tree = cnf(CNF_Tree);                   // Convert formula to CNF formate
             DNF_Tree = dnf(DNF_Tree);                   // Convert formula to DNF formate    
-            
-            // console.log(CNF_Tree.toString());
-            CNF_Tree.sort();
-            console.log(CNF_Tree.toString());
-            CNF_Tree = removeDuplicates(CNF_Tree);
-            console.log(CNF_Tree.toString());
-
-            // $("#cnfText").val(CNF_Tree.toString());
+            $("#cnfText").val(CNF_Tree.toString());
+            $("#dnfText").val(DNF_Tree.toString());
             // $("#cnfSymplifiedText").val(simplify(CNF_Tree));
-            // $("#dnfText").val(DNF_Tree.toString());
-            // $("#dnfSymplifiedText").val(simplify(DNF_Tree));
+            $("#dnfSymplifiedText").val(simplify(DNF_Tree));
             $('#nav-truth-table-tab').show();
             $('#nav-cnf-dnf-tab').show();
             $('#cnf-dnf-section').show();
