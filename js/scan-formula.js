@@ -14,7 +14,10 @@ function addOperator(e) {
   const strBeforeCursor = formula.slice(0, pos);            // Cut the formula before the cursor
   const strAfterCursor = formula.slice(pos);                // Cut the formula after the cursor
   input.value = strBeforeCursor + operator + strAfterCursor;// Update the text on the text field
-  input.setSelectionRange(pos+1, pos+1);                    // Move the cursor one step to the right
+  if (operator == '⊣⊢')
+    input.setSelectionRange(pos+2, pos+2);                   // Move the cursor two steps to the right
+  else
+    input.setSelectionRange(pos+1, pos+1);                   // Move the cursor one step to the right
   input.focus();                                            // Return the focus to the input text field
 }
   

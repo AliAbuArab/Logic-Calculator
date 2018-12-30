@@ -2,69 +2,11 @@
 // * Copyright by Salam Aslah & Ali Abu Arab (2018) *
 //  -------------------------------------------------
 
-/**
- * @description Run impFree and nnf on the tree
- * @param {object} node 
- * @returns {object} node
- */
-function impFree_nnf(node) {
-  // Replace (p → q) To (¬p ∨ q)
-  node = impFree(node);
-  /** 
-   * Replace :
-   * ¬(p ∧ q) To (¬p ∨ ¬q)
-   * ¬(p ∨ q) => (¬p ∧ ¬q)
-   * ¬¬p => p
-   */
-  node = nnf(node); 
-  node.updateOperandsList();
-  return node;
-}
-
-/**
- * @description Separate the operands that in AND node and that in OR node
- * @param {object} node 
- * @param {string} upOperator
- * @param {Array} andList 
- * @param {Array} orList
- * @param {Set} set
- */
-function separate(node, upOperator, andList, orList, set) {
-  // Standing on operand | T | F node
-  if (node.isUnary()) set.add(node.operand);
-  // Standing on not node
-  else if (node.isNot()) set.add(NOT + node.underNode.operand);
-  // Standing on binary node
-  else
-  {
-    if (set.size && node.left.isBinary() && node.left.operator != node.operator)
-    {
-      if (node.isOr()) orList.push(new Set(set));
-      else andList.push(new Set(set));
-      set.clear();
-    }
-    separate(node.left, node.operator, andList, orList, set);
-    if (set.size && node.right.isBinary() && node.right.operator != node.operator)
-    {
-      if (node.isOr()) orList.push(new Set(set));
-      else andList.push(new Set(set));
-      set.clear();
-    }
-    separate(node.right, node.operator, andList, orList, set);
-    if (set.size && node.operator != upOperator)
-    {
-      if (node.isOr()) orList.push(new Set(set));
-      else andList.push(new Set(set));
-      set.clear();
-    }
-  } 
-}
-
 
 /**
  * @description Simplify formula, formate can be CNF/DNF 
  * @param {object} node
- * @returns {object} {node, isChanged}
+ * @returns {object} node
  */
 function simplifyHelper(node, set, upOperator) {
   // We are standing on operand node
@@ -99,7 +41,7 @@ function simplifyHelper(node, set, upOperator) {
       if (node.left.isTrue()) return node.left;
       if (node.right.isTrue()) return node.right
       // Solve (F ∨ ϕ) = ϕ
-      if (node.left.isFalse()) return ode.right;
+      if (node.left.isFalse()) return node.right;
       if (node.right.isFalse()) return node.left;
     }
     // We are standing on '∧' node
@@ -136,29 +78,7 @@ function simplifyHelper(node, set, upOperator) {
 }
 
 
-/**
- * @description Simplify formula tree
- * @param {object} node 
- * @returns {JSON} node
- */
-function simplify(node) {
 
-  // console.log(node.operandsList);
-  // return;
-
-  // node = node.sort();
-  const andList = [];   // Play like DNF
-  const orList = [];    // Play like CNF
-  separate(node, null, andList, orList, new Set);
-  console.log("andList:");
-  console.log(andList);
-  console.log("orList:");
-  console.log(orList);
-
-
-  // node = simplifyHelper(node, new Set, null);
-  return node.toString();
-}
 
 
 
@@ -175,7 +95,7 @@ function simplify(node) {
 function removeDuplicates(node) {
 	let newnode;
   // We are standing on operand node
-  if (node.isUnary() || node.isNot())return node;
+  if (node.isUnary() || node.isNot()) return node;
 
   // We are standing on binary node
   else {
@@ -215,7 +135,7 @@ function removeDuplicates(node) {
 
 
 function isAndOrNotSub(node) {
-  if (node.isAnd() && ((node.left.isBinary() && node.left.isOr()) || (node.right.isBinary() && node.right.isOr())))
+  if ((node.isBinary() && node.isAnd()) && ((node.left.isBinary() && node.left.isOr()) || (node.right.isBinary() && node.right.isOr())))
   {
     if(node.left.toString().length < node.right.toString().length)
     	node.right = notSubTree(node.right, node.left, OR);
@@ -223,7 +143,7 @@ function isAndOrNotSub(node) {
     	node.left = notSubTree(node.left, node.right, OR);
   }
 
-  if (node.isOr() && ((node.left.isBinary() && node.left.isAnd())|| (node.right.isBinary() && node.right.isAnd()))) 
+  if ((node.isBinary() && node.isOr()) && ((node.left.isBinary() && node.left.isAnd())|| (node.right.isBinary() && node.right.isAnd()))) 
   {
     if (node.left.toString().length < node.right.toString().length)
     	node.right = notSubTree(node.right, node.left, AND);
@@ -237,7 +157,7 @@ function isAndOrNotSub(node) {
 
 
 function isAndOrSub(node) {
-  if (node.isOr() && ((node.left.isBinary() && node.left.isAnd()) || (node.right.isBinary() && node.right.isAnd())))
+  if ((node.isBinary() && node.isOr()) && ((node.left.isBinary() && node.left.isAnd()) || (node.right.isBinary() && node.right.isAnd())))
   {
   	if (node.left.toString().length < node.right.toString().length)
   	  if (subTree(node.right, node.left, AND, false))
@@ -247,7 +167,7 @@ function isAndOrSub(node) {
   	 	return node.right;
   }
    
-  if (node.isAnd() && ((node.left.isBinary() && node.left.isOr()) || (node.right.isBinary() && node.right.isOr())))
+  if ((node.isBinary() && node.isAnd()) && ((node.left.isBinary() && node.left.isOr()) || (node.right.isBinary() && node.right.isOr())))
   {
     if(node.left.toString().length < node.right.toString().length)
   	  if(subTree(node.right, node.left, OR, false))
@@ -288,14 +208,14 @@ function isFalseNode(node) {
 }
 
 function isSetsEquals(node) {
-  if (node.left.toString() == node.right.toString()) return node.left;
+  if (node.left.isEqual(node.right)) return node.left;
   return node;
 }
 
 function subTree(nodel, noder, op, flag) {
   if (nodel.isBinary() && nodel.operator != op) return false;
   if (nodel.isUnary() || nodel.isNot()) return false;
-  if (nodel.left.toString() == noder.toString() || nodel.right.toString() == noder.toString())
+  if (nodel.left.isEqual(noder) || nodel.right.isEqual(noder))
     flag = true;
   return subTree(nodel.left, noder, op) || subTree(nodel.right, noder, op) || flag;
 }

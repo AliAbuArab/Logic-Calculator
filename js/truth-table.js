@@ -86,7 +86,7 @@ function createTruthTable(tree) {
         for (let j = 0 ; j < tableValues[i].length ; j++)
         {
             const col = document.createElement("td");   // Create new column
-            col.innerHTML = tableValues[i][j] ? 'T' : 'F'; // Set value of column to T/F
+            col.innerHTML = tableValues[i][j] ? TRUE : FALSE; // Set value of column to T/F
             row.appendChild(col);                       // Add new column to the row
         }
         tableBody.appendChild(row);   // Add the new result row to the table

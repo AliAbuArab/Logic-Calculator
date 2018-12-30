@@ -170,6 +170,75 @@ class SuperClass {
   }
 
 
+/**
+ * @description Separate the operands that in AND node and that in OR node
+ * @param {object} node 
+ * @param {string} upOperator
+ * @param {Array} andList 
+ * @param {Array} orList
+ * @param {Set} set
+ */
+ separateTree(node, upOperator, andList, orList, set) {
+  // Standing on operand | T | F node
+  if (node.isUnary()) set.add(node.operand);
+  // Standing on not node
+  else if (node.isNot()) set.add(NOT + node.underNode.operand);
+  // Standing on binary node
+  else
+  {
+    if (set.size && node.left.isBinary() && node.left.operator != node.operator)
+    {
+      if (node.isOr()) orList.push([...set]);
+      else andList.push([...set]);
+      set.clear();
+    }
+    this.separateTree(node.left, node.operator, andList, orList, set);
+    if (set.size && node.right.isBinary() && node.right.operator != node.operator)
+    {
+      if (node.isOr()) orList.push([...set]);
+      else andList.push([...set]);
+      set.clear();
+    }
+    this.separateTree(node.right, node.operator, andList, orList, set);
+    if (set.size && node.operator != upOperator)
+    {
+      if (node.isOr()) orList.push([...set]);
+      else andList.push([...set]);
+      set.clear();
+    }
+  } 
+}
+
+
+/**
+ * @description Separate the operands that in AND node and that in OR node
+ * @param {object} node 
+ * @returns {object} {andList, orList}
+ */
+  separate() {
+    const andList = [];   // Play like DNF
+    const orList = [];    // Play like CNF
+    this.separateTree(this, null, andList, orList, new Set);
+    return {andList, orList};
+  }
+
+  
+  /**
+   * @description Check if this tree is equal to that passed to the function
+   * @param {object} tree 
+   * @returns {boolean}
+   */
+  isEqual(tree) {
+    const firstAndList = [];
+    const secondAndList = [];
+    const firstOrList = []; 
+    const secondOrList = [];
+    separate(this, null, firstAndList, firstOrList, new Set);
+    separate(tree, null, secondAndList, secondOrList, new Set);
+    return listIsEqual(firstAndList, secondAndList) && listIsEqual(firstOrList, secondOrList);
+  }
+
+
   /**
    * @description Update the operands set for each node
    */ 
@@ -309,7 +378,7 @@ class TrueNode extends UnaryNode {
    * @param {string} operand 
    */
   constructor(operand) { 
-    super('T');
+    super(TRUE);
   }
   
   /**
@@ -332,7 +401,7 @@ class FalseNode extends UnaryNode {
    * @param {string} operand 
    */
   constructor(operand) { 
-    super('F');
+    super(FALSE);
   }
 
   /**
