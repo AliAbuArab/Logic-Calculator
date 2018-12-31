@@ -31,13 +31,8 @@ function run() {
       DNF_Tree = dnf(DNF_Tree); // Convert formula to DNF formate
       $("#cnfText").val(CNF_Tree.toString());
       $("#dnfText").val(DNF_Tree.toString());
-      const andList = [];
-      const orList = [];
-      simplify2(CNF_Tree, andList, orList);
-      console.log(andList);
-      console.log(orList);
-      // $("#cnfSymplifiedText").val(simplify(CNF_Tree));
-      // $("#dnfSymplifiedText").val(simplify(DNF_Tree));
+      $("#cnfSymplifiedText").val(simplify(CNF_Tree, CNF_FORMAT));
+      $("#dnfSymplifiedText").val(simplify(DNF_Tree, DNF_FORMAT));
       $("#nav-truth-table-tab").show();
       $("#nav-cnf-dnf-tab").show();
       $("#cnf-dnf-section").show();
