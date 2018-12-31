@@ -262,50 +262,6 @@ function simplify(node, format) {
   const andList = separated.andList;
   const orList = separated.orList;
 
-
-  // console.log("andList:");
-  // console.log(andList);
-  // console.log("orList:");
-  // console.log(orList);
-
-  // //Solve (ϕ ∧ ϕ) = ϕ  Or  (ϕ ∨ ϕ) = ϕ
-  // solve_ϕ_duplicates(andList, orList),
-  // // Solve (T ∨ ϕ) = T
-  // solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE),
-  // // Solve (F ∧ ϕ) = F
-  // solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE),
-  // // Solve (F ∨ ϕ) = ϕ 
-  // solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE),
-  // // Solve (T ∧ ϕ) = ϕ
-  // solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE),
-  // // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
-  // solve_ϕ_operator_not_ϕ(andList, orList, TRUE, format),
-  // // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ
-  // solve_ϕ_operator_not_ϕ(orList, andList, FALSE, format),
-  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-  // solve_ϕ_operator_ϕ_operator_ψ(andList, orList, CNF_FORMAT),
-  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-  // solve_ϕ_operator_ϕ_operator_ψ(orList, andList, DNF_FORMAT)
-
-
-
-
-
-
-  // // Solve (T ∨ ϕ) = T
-  // console.log(solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE));
-  // // Solve (F ∧ ϕ) = F
-  // console.log(solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE));
-  // // Solve (F ∨ ϕ) = ϕ 
-  // console.log(solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE));
-  // // Solve (T ∧ ϕ) = ϕ
-  // console.log(solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE));
-  // // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
-  // console.log(solve_ϕ_operator_not_ϕ(andList, orList, TRUE));
-
-  
-
-
   let arr;  // We use array of boolean to check if at least one function returns true then loop again
   do {
     arr = [
@@ -330,12 +286,6 @@ function simplify(node, format) {
     ];
   } while (arr.includes(true));
 
-
-  // console.log("andList:");
-  // console.log(andList);
-  // console.log("orList:");
-  // console.log(orList);
-  
   if (! andList.length && ! orList.length) return TRUE;
   if (! andList.length) return listToString(orList, OR);
   if (! orList.length) return listToString(andList, AND);
