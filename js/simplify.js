@@ -198,11 +198,14 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
         }
       }
     } else {
-      for (let j = i+1; j < list1.length; j++) {
+      for (let j = 0; j < list1.length; j++) {
+        if (j == i) continue;
         let k = 0;
         for (; k < oneListOfList1.length; k++) if (! list1[j].includes(oneListOfList1[k])) break;
         if (k == oneListOfList1.length) {
           list1.splice(j, 1);
+          j--;
+          i--;
           flag = true;
         }
       }
@@ -211,11 +214,15 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
         const oneListOfList2 = list2[j];
         for (let k = 0 ; k < oneListOfList1.length ; k++) { 
           if (oneListOfList2.includes(oneListOfList1[k])) {
-            if (formate == CNF_FORMAT) 
-              list1.splice(i, 1);
-            else
+            if (formate == CNF_FORMAT) {
               list2.splice(j, 1);
-            return true;        
+              j--;
+            }
+            else {
+              list1.splice(i, 1); 
+              i--;
+            }
+            flag = true;   
           }
         }
       }
@@ -261,6 +268,37 @@ function simplify(node, format) {
   const separated = node.separate();
   const andList = separated.andList;
   const orList = separated.orList;
+
+  // console.log("andList:");
+  // console.log(andList);
+  // console.log("orList:");
+  // console.log(orList);
+
+  // // Solve (ϕ ∧ ϕ) = ϕ  Or  (ϕ ∨ ϕ) = ϕ
+  // solve_ϕ_duplicates(andList, orList);
+  // // Solve (T ∨ ϕ) = T
+  // solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE);
+  // // Solve (F ∧ ϕ) = F
+  // solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE);
+  // // Solve (F ∨ ϕ) = ϕ 
+  // solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE);
+  // // Solve (T ∧ ϕ) = ϕ
+  // solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE);
+  // // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
+  // solve_ϕ_operator_not_ϕ(andList, orList, TRUE);
+  // // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ
+  // solve_ϕ_operator_not_ϕ(orList, andList, FALSE);
+  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
+  // solve_ϕ_operator_ϕ_operator_ψ(andList, orList, format);
+  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
+  // solve_ϕ_operator_ϕ_operator_ψ(orList, andList, format);
+
+  // console.log("andList:");
+  // console.log(andList);
+  // console.log("orList:");
+  // console.log(orList);
+
+  // ¬((q→p)∨r)∨((r∨p)→s)
 
   let arr;  // We use array of boolean to check if at least one function returns true then loop again
   do {
