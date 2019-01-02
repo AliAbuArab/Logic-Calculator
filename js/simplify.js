@@ -17,9 +17,9 @@ function isOpposite(lhs, rhs) {
     // (F | T)
     (lhs == FALSE && rhs == TRUE) ||
     // (ϕ | ¬ϕ)
-    (lhs[0] != NOT && rhs[0] == NOT && lhs == rhs[1]) ||
+    (lhs[0] != NOT && rhs[0] == NOT && lhs == rhs.substring(1, rhs.length)) ||
     // (¬ϕ | ϕ)
-    (rhs[0] != NOT && lhs[0] == NOT && rhs == lhs[1])
+    (rhs[0] != NOT && lhs[0] == NOT && rhs == lhs.substring(1, lhs.length))
   ) return true;
   return false;
 }
@@ -55,12 +55,14 @@ function solve_ϕ_operator_not_ϕ(list1, list2, bool, format) {
       // Iterate over single sup list in list2
       for (let k = j + 1; k < oneListOfList2.length; k++) {
         if (isOpposite(operand, oneListOfList2[k])) {
-          oneListOfList2.splice(j, 1); // remove operand from list
-          oneListOfList2.splice(k - 1, 1); // remove operand from list
-          oneListOfList2.push(bool);
+          list2.splice(i, 1);
+          if (format == DNF_FORMAT && ! list2.length) list1.push([bool]);
+          i--;
           flag = true;
+          break;
         }
       }
+      if (flag) break;
     }
     // Iterate over list1
     for (let j = 0; j < list1.length; j++) {
@@ -76,13 +78,8 @@ function solve_ϕ_operator_not_ϕ(list1, list2, bool, format) {
             k--;
           }
         }
-        // if (! oneListOfList1.length) list2.splice(i, 1); // Remove empty list [] from list2
-        // else for (k = 0; k < oneListOfList1.length; k++) oneListOfList2.push(oneListOfList1[k]);
-        // list1.splice(j, 1); // Remove empty list [] from list1
         flag = true;
       }
-      // bool = TRUE  =>  list1 = orList
-      // bool = FALSE =>  list1 = andList
       for (; k < oneListOfList2.length; k++) {
         if (oneListOfList1.includes(makeAnOpposite(oneListOfList2[k]))) {
           if (format == CNF_FORMAT) 
@@ -190,19 +187,22 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
   let flag = false;
   for (let i = 0; i < list1.length; i++) {
     const oneListOfList1 = list1[i];
-    if (oneListOfList1.length == 1) {
-      for (let j = 0; j < list2.length; j++) {
-        if (list2[j].includes(oneListOfList1[0])) {
-          list2.splice(j, 1);
-          flag = true;
-        }
-      }
-    } else {
-      for (let j = i+1; j < list1.length; j++) {
+    // if (oneListOfList1.length == 1) {
+    //   for (let j = 0; j < list2.length; j++) {
+    //     if (list2[j].includes(oneListOfList1[0])) {
+    //       list2.splice(j, 1);
+    //       flag = true;
+    //     }
+    //   }
+    // } else {
+      for (let j = 0; j < list1.length; j++) {
+        if (i == j) continue;
         let k = 0;
         for (; k < oneListOfList1.length; k++) if (! list1[j].includes(oneListOfList1[k])) break;
         if (k == oneListOfList1.length) {
           list1.splice(j, 1);
+          j--;
+          i--;
           flag = true;
         }
       }
@@ -211,15 +211,19 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
         const oneListOfList2 = list2[j];
         for (let k = 0 ; k < oneListOfList1.length ; k++) { 
           if (oneListOfList2.includes(oneListOfList1[k])) {
-            if (formate == CNF_FORMAT) 
-              list1.splice(i, 1);
-            else
+            if (formate == CNF_FORMAT) {
               list2.splice(j, 1);
-            return true;        
+              j--;
+            }
+            else {
+              list1.splice(i, 1);
+              i--;
+            }
+            flag = true; 
           }
         }
       }
-    }
+    // }
   }
   return flag;
 }
@@ -262,6 +266,39 @@ function simplify(node, format) {
   const andList = separated.andList;
   const orList = separated.orList;
 
+  // console.log("andList:");
+  // console.log(andList);
+  // console.log("orList:");
+  // console.log(orList);
+
+  // // Solve (ϕ ∧ ϕ) = ϕ  Or  (ϕ ∨ ϕ) = ϕ
+  // solve_ϕ_duplicates(andList, orList);
+  // // Solve (T ∨ ϕ) = T
+  // solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE);
+  // // Solve (F ∧ ϕ) = F
+  // solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE);
+  // // Solve (F ∨ ϕ) = ϕ 
+  // solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE);
+  // // Solve (T ∧ ϕ) = ϕ
+  // solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE);
+  // // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
+  // solve_ϕ_operator_not_ϕ(andList, orList, TRUE, format);
+  // // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ
+  // solve_ϕ_operator_not_ϕ(orList, andList, FALSE, format);
+  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
+  // solve_ϕ_operator_ϕ_operator_ψ(andList, orList, format);
+  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
+  // solve_ϕ_operator_ϕ_operator_ψ(orList, andList, format);
+
+  // console.log("andList:");
+  // console.log(andList);
+  // console.log("orList:");
+  // console.log(orList);
+
+  // (p1∨s1)∧(¬p1∨s1)
+
+
+
   let arr;  // We use array of boolean to check if at least one function returns true then loop again
   do {
     arr = [
@@ -280,9 +317,9 @@ function simplify(node, format) {
       // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ
       solve_ϕ_operator_not_ϕ(orList, andList, FALSE),
       // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-      solve_ϕ_operator_ϕ_operator_ψ(andList, orList, CNF_FORMAT),
+      solve_ϕ_operator_ϕ_operator_ψ(andList, orList, format),
       // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-      solve_ϕ_operator_ϕ_operator_ψ(orList, andList, DNF_FORMAT)
+      solve_ϕ_operator_ϕ_operator_ψ(orList, andList, format)
     ];
   } while (arr.includes(true));
 
