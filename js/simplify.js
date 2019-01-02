@@ -123,7 +123,6 @@ function solve_t_or_ϕ_or_f_and_ϕ(list, list2, bool) {
   for (let i = 0; i < list.length; i++) {
     if (list[i].includes(bool) && list[i].length > 1) {
       list.splice(i ,1);
-      // list[i] = [bool];
       list2.push([bool]);
       flag = true;
     }
@@ -283,8 +282,7 @@ function simplify(node, format) {
   // console.log("andList:");
   // console.log(andList);
   // console.log("orList:");
-  console.log(orList);
-
+  // console.log(orList);
 
 
   let arr;  // We use array of boolean to check if at least one function returns true then loop again
