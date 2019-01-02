@@ -187,7 +187,7 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
   for (let i = 0; i < list1.length; i++) {
     const oneListOfList1 = list1[i];
     for (let j = 0; j < list1.length; j++) {
-      if (i == j) continue;
+      if (listIsEqual(oneListOfList1, list1[j])) continue;
       let k = 0;
       for (; k < oneListOfList1.length; k++) if (! list1[j].includes(oneListOfList1[k])) break;
       if (k == oneListOfList1.length) {
