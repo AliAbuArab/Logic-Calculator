@@ -187,43 +187,33 @@ function solve_ϕ_operator_ϕ_operator_ψ(list1, list2, formate) {
   let flag = false;
   for (let i = 0; i < list1.length; i++) {
     const oneListOfList1 = list1[i];
-    // if (oneListOfList1.length == 1) {
-    //   for (let j = 0; j < list2.length; j++) {
-    //     if (list2[j].includes(oneListOfList1[0])) {
-    //       list2.splice(j, 1);
-    //       flag = true;
-    //     }
-    //   }
-    // } else {
-      for (let j = 0; j < list1.length; j++) {
-        if (i == j) continue;
-        let k = 0;
-        for (; k < oneListOfList1.length; k++) if (! list1[j].includes(oneListOfList1[k])) break;
-        if (k == oneListOfList1.length) {
-          list1.splice(j, 1);
-          j--;
-          i--;
-          flag = true;
-        }
+    for (let j = 0; j < list1.length; j++) {
+      if (i == j) continue;
+      let k = 0;
+      for (; k < oneListOfList1.length; k++) if (! list1[j].includes(oneListOfList1[k])) break;
+      if (k == oneListOfList1.length) {
+        list1.splice(j, 1);
+        j--;
+        flag = true;
       }
+    }
 
-      for (let j = 0 ; j < list2.length; j++) {
-        const oneListOfList2 = list2[j];
-        for (let k = 0 ; k < oneListOfList1.length ; k++) { 
-          if (oneListOfList2.includes(oneListOfList1[k])) {
-            if (formate == CNF_FORMAT) {
-              list2.splice(j, 1);
-              j--;
-            }
-            else {
-              list1.splice(i, 1);
-              i--;
-            }
-            flag = true; 
+    for (let j = 0 ; j < list2.length; j++) {
+      const oneListOfList2 = list2[j];
+      for (let k = 0 ; k < oneListOfList1.length ; k++) { 
+        if (oneListOfList2.includes(oneListOfList1[k])) {
+          if (formate == CNF_FORMAT) {
+            list2.splice(j, 1);
+            j--;
           }
+          else {
+            list1.splice(i, 1);
+            i--;
+          }
+          flag = true; 
         }
       }
-    // }
+    }
   }
   return flag;
 }
@@ -293,9 +283,7 @@ function simplify(node, format) {
   // console.log("andList:");
   // console.log(andList);
   // console.log("orList:");
-  // console.log(orList);
-
-  // (p1∨s1)∧(¬p1∨s1)
+  console.log(orList);
 
 
 
