@@ -37,14 +37,19 @@
       <!-- navigation tabs -->
       <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
-          <a class="nav-item nav-link active show" id="nav-truth-table-tab" data-toggle="tab" href="#truth-table-section" role="tab" aria-controls="truth-table-section" aria-selected="true">Truth Table</a>
+          <a class="nav-item nav-link active show" id="nav-truth-table-tab" data-toggle="tab" href="#truth-table-section" role="tab" aria-controls="truth-table-section" aria-selected="true">
+            <span>Truth Table</span>
+            <button id="copy-button" class="btn pt-0 pb-0 pl-1 pr-1 border-left" type="button" data-clipboard-demo="" data-clipboard-target="#truthTable" onclick="copied()">
+              <img class="clippy" src="images/clippy.svg" style="width:15px;" alt="Copy to clipboard">
+            </button>
+          </a>
           <a class="nav-item nav-link" id="nav-cnf-dnf-tab" data-toggle="tab" href="#cnf-dnf-section" role="tab" aria-controls="cnf-dnf-section" aria-selected="false">CNF/DNF</a>
         </div>
       </nav> <!-- /navigation tabs -->
       <!-- body-of-tabs -->
       <div class="tab-content pt-3" id="nav-tabContent">
         <div class="tab-pane fade active show" id="truth-table-section" role="tabpanel" aria-labelledby="nav-truth-table-tab">
-            <div id="truthTableDiv" class="mx-auto text-center"></div>
+          <div id="truthTableDiv" class="mx-auto text-center"></div>
         </div>
         <div class="tab-pane fade" id="cnf-dnf-section" role="tabpanel" aria-labelledby="nav-cnf-dnf-tab">
           <!-- CNF -->
@@ -101,6 +106,7 @@
   <!-- scripts -->
   <script src="js/jquery.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
+  <script src="js/clipboard.min.js"></script>
   <script src="js/global-variables.js"></script>
   <script src="js/classes.js"></script>
   <script src="js/helper-functions.js"></script>
