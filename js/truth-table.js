@@ -94,4 +94,6 @@ function createTruthTable(tree) {
     
     table.appendChild(tableBody); // Add table's body for the table
     truthTableDiv.appendChild(table);   // Add the table to the HTML document
+
+    new ClipboardJS('#copy-button');
 }

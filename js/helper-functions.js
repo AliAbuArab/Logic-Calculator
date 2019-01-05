@@ -102,3 +102,16 @@ function listIsEqual(list1, list2) {
   }
   return true;
 }
+
+
+/**
+ * @description Show alert that table copied to clipboard
+ */
+function copied() {
+  var el = document.createElement("div");
+  el.setAttribute("style", "position: fixed; top: " + $('#operatorButtons').position().top + "px; left: 50%; margin-left: -91px;");
+  el.className = "alert alert-primary";
+  el.innerHTML = 'copied to clipboard';
+  setTimeout(function() { el.parentNode.removeChild(el); }, 2000);
+  document.body.appendChild(el);
+}
