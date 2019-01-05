@@ -9,18 +9,29 @@
  * @returns {boolean} 
  */
 function isOpposite(lhs, rhs) {
-  // (ϕ | ϕ)
-  if (lhs == rhs) return false;
-  if (
-    // (T | F)
-    (lhs == TRUE && rhs == FALSE) ||
-    // (F | T)
-    (lhs == FALSE && rhs == TRUE) ||
-    // (ϕ | ¬ϕ)
-    (lhs[0] != NOT && rhs[0] == NOT && lhs == rhs.substring(1, rhs.length)) ||
-    // (¬ϕ | ϕ)
-    (rhs[0] != NOT && lhs[0] == NOT && rhs == lhs.substring(1, lhs.length))
-  ) return true;
+  if (typeof lhs != typeof rhs) return false;
+  // Work on strings
+  if (typeof lhs == 'string') {
+    // (ϕ | ϕ)
+    if (lhs == rhs) return false;
+    if (
+      // (T | F)
+      (lhs == TRUE && rhs == FALSE) ||
+      // (F | T)
+      (lhs == FALSE && rhs == TRUE) ||
+      // (ϕ | ¬ϕ)
+      (lhs[0] != NOT && rhs[0] == NOT && lhs == rhs.substring(1, rhs.length)) ||
+      // (¬ϕ | ϕ)
+      (rhs[0] != NOT && lhs[0] == NOT && rhs == lhs.substring(1, lhs.length))
+    ) return true;
+  }
+  // Work on array/list
+  if (typeof lhs == 'object') {
+    if (lhs.length != rhs.length) return false;
+    let i;
+    for (i = 0; i < lhs.length; i++) if (! rhs.includes(makeAnOpposite(lhs[i]))) break;
+    if (i == lhs.length) return true;
+  }
   return false;
 }
 
@@ -56,7 +67,7 @@ function solve_ϕ_operator_not_ϕ(list1, list2, bool, format) {
       for (let k = j + 1; k < oneListOfList2.length; k++) {
         if (isOpposite(operand, oneListOfList2[k])) {
           list2.splice(i, 1);
-          if (format == DNF_FORMAT && ! list2.length) list1.push([bool]);
+          if (! list1.length) list1.push([bool]);
           i--;
           flag = true;
           break;
@@ -118,16 +129,22 @@ function solve_ϕ_duplicates(andList, orList) {
  * @param {Array} list2
  * @returns {boolean} If it solve return true otherwise return false
  */
-function solve_t_or_ϕ_or_f_and_ϕ(list, list2, bool) {
+function solve_t_or_ϕ_or_f_and_ϕ(list1, list2, bool, format) {
   let flag = false;
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].includes(bool) && list[i].length > 1) {
-      list.splice(i ,1);
+  for (let i = 0; i < list1.length; i++) {
+    if (list1[i].includes(bool) && list1[i].length > 1) {
+      list1.splice(i ,1);
       list2.push([bool]);
+      i--;
       flag = true;
     }
   }
-  if (list.length == 1) flag = false;
+  if (format == DNF_FORMAT && ((list1.length == 1 && list1[0][0] == TRUE) || (list2.length == 1 && list2[0][0] == TRUE))) {
+    list1.splice(0, list1.length);
+    list2.splice(0, list2.length);
+  }
+  
+  if (list1.length == 1) flag = false;
   return flag;
 }
 
@@ -137,39 +154,46 @@ function solve_t_or_ϕ_or_f_and_ϕ(list, list2, bool) {
  * @param {Array} orList 
  * @returns {boolean} If it solve return true otherwise return false
  */
-function solve_t_and_ϕ_or_f_or_ϕ(list, bool, format) {
+function solve_t_and_ϕ_or_f_or_ϕ(list1, list2, bool, format) {
   let flag = false;
-  for (let i = 0; i < list.length; i++) {
-    // If list is orList(CNF)
-    if (bool == FALSE && list[i].length == 1 && list[i][0] == TRUE) {
-      list.splice(i, 1);
+  for (let i = 0; i < list1.length; i++) {
+    // If list1 is orlist(CNF)
+    if (bool == FALSE && list1[i].length == 1 && list1[i][0] == TRUE) {
+      list1.splice(i, 1);
       flag = true;
     }
-    // If list is orList(CNF) and there is ['F'] empty the list
-    else if (bool == FALSE && list[i].length == 1 && list[i][0] == FALSE) {
-      if (list.length == 1 && list[0] == FALSE) flag = false;
+    // If list1 is orlist(CNF) and there is ['F'] empty the list1
+    else if (bool == FALSE && list1[i].length == 1 && list1[i][0] == FALSE) {
+      if (list1.length == 1 && list1[0] == FALSE) flag = false;
       else {
-        list.splice(0, list.length);
-        list.push([FALSE]);
+        list1.splice(0, list1.length);
+        list1.push([FALSE]);
         flag = true;
       }
     }
-    // If list is andList(DNF) and there is ['T'] empty the list
-    else if (bool == TRUE && list[i].length == 1 && list[i][0] == TRUE) {
-      list.splice(0, list.length);
+    // If list1 is andList(DNF) and there is ['T'] empty the list1
+    else if (bool == TRUE && list1[i].length == 1 && list1[i][0] == TRUE) {
+      list1.splice(0, list1.length);
       if (format == DNF_FORMAT) {
-        list.push([TRUE]);
+        list1.push([TRUE]);
         flag = true;
       } else {
         flag = false;
       }
     }
     //
-    else if (list[i].includes(bool)) {
-      list[i].splice(list[i].indexOf(bool), 1);
-      if (! list[i].length) list.splice(i, 1);
+    else if (list1[i].includes(bool)) {
+      list1[i].splice(list1[i].indexOf(bool), 1);
+      if (! list1[i].length) list1.splice(i, 1);
       flag = true;
     }
+  }
+
+  if (format == DNF_FORMAT) {
+    if (list1.length == 1 && list1[0][0] == FALSE && list2.length)
+      list1.splice(0, 1);
+    else if (list2.length == 1 && list2[0][0] == FALSE && list1.length)
+      list2.splice(0, 1);
   }
   return flag;
 }
@@ -255,49 +279,19 @@ function simplify(node, format) {
   const andList = separated.andList;
   const orList = separated.orList;
 
-  // console.log("andList:");
-  // console.log(andList);
-  // console.log("orList:");
-  // console.log(orList);
-
-  // // Solve (ϕ ∧ ϕ) = ϕ  Or  (ϕ ∨ ϕ) = ϕ
-  // solve_ϕ_duplicates(andList, orList);
-  // // Solve (T ∨ ϕ) = T
-  // solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE);
-  // // Solve (F ∧ ϕ) = F
-  // solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE);
-  // // Solve (F ∨ ϕ) = ϕ 
-  // solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE);
-  // // Solve (T ∧ ϕ) = ϕ
-  // solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE);
-  // // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
-  // solve_ϕ_operator_not_ϕ(andList, orList, TRUE, format);
-  // // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ
-  // solve_ϕ_operator_not_ϕ(orList, andList, FALSE, format);
-  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-  // solve_ϕ_operator_ϕ_operator_ψ(andList, orList, format);
-  // // Solve (ϕ ∧ (ϕ ∨ ψ)) = ϕ  Or  (ϕ ∨ (ϕ ∧ ψ)) = ϕ
-  // solve_ϕ_operator_ϕ_operator_ψ(orList, andList, format);
-
-  // console.log("andList:");
-  // console.log(andList);
-  // console.log("orList:");
-  // console.log(orList);
-
-
   let arr;  // We use array of boolean to check if at least one function returns true then loop again
   do {
     arr = [
       // Solve (ϕ ∧ ϕ) = ϕ  Or  (ϕ ∨ ϕ) = ϕ
       solve_ϕ_duplicates(andList, orList),
       // Solve (T ∨ ϕ) = T
-      solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE),
+      solve_t_or_ϕ_or_f_and_ϕ(orList, andList, TRUE, format),
       // Solve (F ∧ ϕ) = F
-      solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE),
+      solve_t_or_ϕ_or_f_and_ϕ(andList, orList, FALSE, format),
       // Solve (F ∨ ϕ) = ϕ 
-      solve_t_and_ϕ_or_f_or_ϕ(orList, FALSE),
+      solve_t_and_ϕ_or_f_or_ϕ(orList, andList, FALSE, format),
       // Solve (T ∧ ϕ) = ϕ
-      solve_t_and_ϕ_or_f_or_ϕ(andList, TRUE),
+      solve_t_and_ϕ_or_f_or_ϕ(andList, orList, TRUE, format),
       // Solve (ϕ ∨ ¬ϕ) = T  Or  ϕ ∨ (¬ϕ ∧ ψ) = ϕ ∨ ψ
       solve_ϕ_operator_not_ϕ(andList, orList, TRUE),
       // Solve (ϕ ∧ ¬ϕ) = F  Or ϕ ∧ (¬ϕ ∨ ψ) = ϕ ∧ ψ

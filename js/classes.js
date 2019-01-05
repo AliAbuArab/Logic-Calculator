@@ -13,6 +13,7 @@ class SuperClass {
     this.operandsList = [];
   }
 
+
   /**
    * @description Converting tree to string
    * @param {object} node 
@@ -58,7 +59,7 @@ class SuperClass {
     // We are standing on operand | T | F node
     if (node.isUnary()) 
     {
-      node.operandsList.push(node.operand);
+      node.operandsList = [node.operand];
       set.add(node.operand);
     }
     // We standong on not node
@@ -68,7 +69,6 @@ class SuperClass {
       const underSet = set
       set = new Set;
       set.forEach(underSet.add, underSet);                // Merge the left set with the right set
-      //underSet.forEach(node.operandsSet.add, node.operandsSet); // Add the operands to the node set
       node.operandsList = [...underSet];
     } 
     // We standing on binary node 
@@ -79,13 +79,12 @@ class SuperClass {
       set = new Set;
       this.updateNodeOperands(node.right, set);
       set.forEach(leftSideSet.add, leftSideSet);                  // Merge the left set with the right set
-      //leftSideSet.forEach(node.operandsSet.add, node.operandsSet);// Add the operands to the node set
       node.operandsList = [...leftSideSet];
     }
   }
 
 
-/**
+  /**
  * @description Separate the operands that in AND node and that in OR node
  * @param {object} node 
  * @param {string} upOperator
@@ -93,39 +92,39 @@ class SuperClass {
  * @param {Array} orList
  * @param {Set} set
  */
- separateTree(node, upOperator, andList, orList, set) {
-  // Standing on operand | T | F node
-  if (node.isUnary()) set.add(node.operand);
-  // Standing on not node
-  else if (node.isNot()) set.add(NOT + node.underNode.operand);
-  // Standing on binary node
-  else
-  {
-    if (set.size && node.left.isBinary() && node.left.operator != node.operator)
+  separateTree(node, upOperator, andList, orList, set) {
+    // Standing on operand | T | F node
+    if (node.isUnary()) set.add(node.operand);
+    // Standing on not node
+    else if (node.isNot()) set.add(NOT + node.underNode.operand);
+    // Standing on binary node
+    else
     {
-      if (node.isOr()) orList.push([...set]);
-      else andList.push([...set]);
-      set.clear();
-    }
-    this.separateTree(node.left, node.operator, andList, orList, set);
-    if (set.size && node.right.isBinary() && node.right.operator != node.operator)
-    {
-      if (node.isOr()) orList.push([...set]);
-      else andList.push([...set]);
-      set.clear();
-    }
-    this.separateTree(node.right, node.operator, andList, orList, set);
-    if (set.size && node.operator != upOperator)
-    {
-      if (node.isOr()) orList.push([...set]);
-      else andList.push([...set]);
-      set.clear();
-    }
-  } 
-}
+      if (set.size && node.left.isBinary() && node.left.operator != node.operator)
+      {
+        if (node.isOr()) orList.push([...set]);
+        else andList.push([...set]);
+        set.clear();
+      }
+      this.separateTree(node.left, node.operator, andList, orList, set);
+      if (set.size && node.right.isBinary() && node.right.operator != node.operator)
+      {
+        if (node.isOr()) orList.push([...set]);
+        else andList.push([...set]);
+        set.clear();
+      }
+      this.separateTree(node.right, node.operator, andList, orList, set);
+      if (set.size && node.operator != upOperator)
+      {
+        if (node.isOr()) orList.push([...set]);
+        else andList.push([...set]);
+        set.clear();
+      }
+    } 
+  }
 
 
-/**
+  /**
  * @description Separate the operands that in AND node and that in OR node
  * @param {object} node 
  * @returns {object} {andList, orList}
@@ -137,37 +136,12 @@ class SuperClass {
     return {andList, orList};
   }
 
-  
-  /**
-   * @description Check if this tree is equal to that passed to the function
-   * @param {object} tree 
-   * @returns {boolean}
-   */
-  isEqual(tree) {
-    const firstAndList = [];
-    const secondAndList = [];
-    const firstOrList = []; 
-    const secondOrList = [];
-    separate(this, null, firstAndList, firstOrList, new Set);
-    separate(tree, null, secondAndList, secondOrList, new Set);
-    return listIsEqual(firstAndList, secondAndList) && listIsEqual(firstOrList, secondOrList);
-  }
-
 
   /**
    * @description Update the operands set for each node
    */ 
   updateOperandsList() {
     this.updateNodeOperands(this, new Set);
-  }
-
-
-  /**
-   * @description Sort the tree by alphabetical order and remove duplicate operands 
-   * @returns {object} node
-   */
-  sort() {
-    return this.sortTree(this, new Set, null);
   }
 
 
