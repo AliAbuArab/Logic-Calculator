@@ -74,15 +74,6 @@ function isCharValid(character) {
 
 
 /**
- * @description Sorting string letters in alphabetical order
- * @param {string} str
- */
-function sort(str) {
-  return str.split("").sort().join("");
-}
-
-
-/**
  * @description Check if two lists is equal
  * @param {Array} list1
  * @param {Array} list2

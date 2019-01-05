@@ -92,7 +92,7 @@ function cnfDistr(nodeLeft, nodeRight) {
     leftChild = new BinaryNode(OR, nodeLeft, nodeRight.left);
     rightChild = new BinaryNode(OR, nodeLeft, nodeRight.right);
   }
-  return new BinaryNode(AND, leftChild, rightChild);
+  return new BinaryNode(AND, cnf(leftChild), cnf(rightChild));
 }
 
 
@@ -135,7 +135,7 @@ function dnfDistr(nodeLeft, nodeRight) {
     leftChild = new BinaryNode(AND, nodeLeft, nodeRight.left);
     rightChild = new BinaryNode(AND, nodeLeft, nodeRight.right);
   }
-  return new BinaryNode(OR, leftChild, rightChild);
+  return new BinaryNode(OR, dnf(leftChild), dnf(rightChild));
 }
 
 
