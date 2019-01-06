@@ -31,8 +31,8 @@ function run() {
       DNF_Tree = dnf(DNF_Tree); // Convert formula to DNF formate
       $("#cnfText").val(CNF_Tree.toString());
       $("#dnfText").val(DNF_Tree.toString());
-      $("#cnfSymplifiedText").val(simplify(CNF_Tree, CNF_FORMAT));
-      $("#dnfSymplifiedText").val(simplify(DNF_Tree, DNF_FORMAT));
+      $("#cnfSymplifiedText").val(simplify(CNF_Tree, AND));
+      $("#dnfSymplifiedText").val(simplify(DNF_Tree, OR));
       $("#nav-truth-table-tab").show();
       $("#nav-cnf-dnf-tab").show();
       $("#cnf-dnf-section").show();
