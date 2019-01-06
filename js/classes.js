@@ -13,7 +13,6 @@ class SuperClass {
     this.operandsList = [];
   }
 
-
   /**
    * @description Converting tree to string
    * @param {object} node 
@@ -49,7 +48,6 @@ class SuperClass {
     return new BinaryNode(node.operator, this.cloneTree(node.left), this.cloneTree(node.right));
   }
 
-  
   /**
    * @description Update the operands set for each node
    * @param {object} node 
@@ -59,7 +57,7 @@ class SuperClass {
     // We are standing on operand | T | F node
     if (node.isUnary()) 
     {
-      node.operandsList = [node.operand];
+      node.operandsList.push(node.operand);
       set.add(node.operand);
     }
     // We standong on not node
@@ -69,6 +67,7 @@ class SuperClass {
       const underSet = set
       set = new Set;
       set.forEach(underSet.add, underSet);                // Merge the left set with the right set
+      //underSet.forEach(node.operandsSet.add, node.operandsSet); // Add the operands to the node set
       node.operandsList = [...underSet];
     } 
     // We standing on binary node 
@@ -79,63 +78,43 @@ class SuperClass {
       set = new Set;
       this.updateNodeOperands(node.right, set);
       set.forEach(leftSideSet.add, leftSideSet);                  // Merge the left set with the right set
+      //leftSideSet.forEach(node.operandsSet.add, node.operandsSet);// Add the operands to the node set
       node.operandsList = [...leftSideSet];
     }
   }
 
-
-  /**
- * @description Separate the operands that in AND node and that in OR node
- * @param {object} node 
- * @param {string} upOperator
- * @param {Array} andList 
- * @param {Array} orList
- * @param {Set} set
- */
-  separateTree(node, upOperator, andList, orList, set) {
-    // Standing on operand | T | F node
-    if (node.isUnary()) set.add(node.operand);
-    // Standing on not node
-    else if (node.isNot()) set.add(NOT + node.underNode.operand);
-    // Standing on binary node
-    else
-    {
-      if (set.size && node.left.isBinary() && node.left.operator != node.operator)
-      {
-        if (node.isOr()) orList.push([...set]);
-        else andList.push([...set]);
-        set.clear();
-      }
-      this.separateTree(node.left, node.operator, andList, orList, set);
-      if (set.size && node.right.isBinary() && node.right.operator != node.operator)
-      {
-        if (node.isOr()) orList.push([...set]);
-        else andList.push([...set]);
-        set.clear();
-      }
-      this.separateTree(node.right, node.operator, andList, orList, set);
-      if (set.size && node.operator != upOperator)
-      {
-        if (node.isOr()) orList.push([...set]);
-        else andList.push([...set]);
-        set.clear();
-      }
-    } 
+treeToString2(node) {
+    if (node.isUnary()) return node.operand;
+    if (node.isNot()) return NOT + this.treeToString2(node.underNode);
+    return this.treeToString2(node.left) + node.operator + this.treeToString2(node.right);
   }
 
+treeToLists(op1,op2){
+  let strnode = this.treeToString2(this),strop = strnode,str;
+  let orList=[],andList=[];
 
-  /**
- * @description Separate the operands that in AND node and that in OR node
- * @param {object} node 
- * @returns {object} {andList, orList}
- */
-  separate() {
-    const andList = [];   // Play like DNF
-    const orList = [];    // Play like CNF
-    this.separateTree(this, null, andList, orList, new Set);
-    return {andList, orList};
-  }
-
+   while(strnode.indexOf(op1)!=-1){
+     strop = strnode.substring(0,strnode.indexOf(op1));
+     while(strop.indexOf(op2)!=-1){
+       str = strop.substring(0,strop.indexOf(op2))
+       orList.push(str);
+       strop = strop.substring(strop.indexOf(op2)+1,strop.length);
+     }
+     orList.push(strop);
+     strnode = strnode.substring(strnode.indexOf(op1)+1,strnode.length); 
+     andList.push([...orList]);
+     orList=[];
+   }
+   strop=strnode;
+   while(strop.indexOf(op2)!=-1){
+     str = strop.substring(0,strop.indexOf(op2))
+     orList.push(str);
+     strop = strop.substring(strop.indexOf(op2)+1,strop.length);
+   }
+   orList.push(strop);
+   andList.push([...orList]);
+   return andList;
+}
 
   /**
    * @description Update the operands set for each node
