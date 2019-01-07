@@ -87,6 +87,7 @@ function createTruthTable(tree) {
         {
             const col = document.createElement("td");   // Create new column
             col.innerHTML = tableValues[i][j] ? TRUE : FALSE; // Set value of column to T/F
+            col.className = tableValues[i][j] ? 'green' : 'red'; // Set color of column to green/red
             row.appendChild(col);                       // Add new column to the row
         }
         tableBody.appendChild(row);   // Add the new result row to the table
