@@ -96,8 +96,9 @@ function readFormula(formula) {
       if (!expectOperand) throw "Expected →, ∧, ∨";
       // Add the operand to the tree
       let op;
-      if (operand == "t" || operand == "T") op = new TrueNode;
-      else if (operand == "f" || operand == "F") op = new FalseNode;
+      operand = operand.toLowerCase();
+      if (operand == "t") op = new TrueNode;
+      else if (operand == "f") op = new FalseNode;
       else op = new OperandNode(operand);
       addNode(op, operandsStack, operatorsStack);
       expectOperand = false;  // Now we expect operator or parentheses

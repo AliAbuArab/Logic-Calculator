@@ -34,23 +34,18 @@ function isEquals(list1,list2){
  * @returns {boolean} If it solve return true otherwise return false
  */
 function solve_ϕ_duplicates(list) {
-  console.log(list);
-  for (let i = 0; i < list.length; i++){
-    if(list[i].length>1){
-      for(let k=0;k<list[i].length;k++){
-        for(let m=k+1;m<list[i].length;m++){
-          if(list[i][k] == list[i][m])list[i].splice(m,1);
-        }
-      }
-    }
-  }
+  for (let i = 0; i < list.length; i++) 
+    if (list[i].length > 1) 
+      for (let k = 0; k < list[i].length; k++) 
+        for (let m = k+1; m < list[i].length; m++) 
+          if (list[i][k] == list[i][m]) list[i].splice(m,1);
 
-  for (let i = 0; i < list.length; i++){
-    for (let j = i+1; j < list.length; j++){ 
-      if(list[i].length<list[j].length){
-        if (isEquals(list[i], list[j])){list.splice(j ,1); return true;}
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i+1; j < list.length; j++) { 
+      if (list[i].length < list[j].length) {
+        if (isEquals(list[i], list[j])) { list.splice(j ,1); return true; }
       }
-      else if (isEquals(list[j], list[i])){list.splice(i ,1);return true;}
+      else if (isEquals(list[j], list[i])) { list.splice(i ,1); return true; }
     }
   }
   return false;
@@ -121,7 +116,6 @@ function solve_t_or_and_ϕ(list,op) {
          if(op==AND){
           list.splice(i,1);  
           if(list.length == 0)list.push([TRUE]);
-          
         }
          else{
            if(list[i].length==1){

@@ -23,3 +23,11 @@ img {
 #blabla::after {
     content: "  |  ";
 }
+
+.green {
+    color: green;
+}
+
+.red {
+    color: red;
+}

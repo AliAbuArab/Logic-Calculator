@@ -84,36 +84,37 @@ class SuperClass {
   }
 
 treeToString2(node) {
-    if (node.isUnary()) return node.operand;
-    if (node.isNot()) return NOT + this.treeToString2(node.underNode);
-    return this.treeToString2(node.left) + node.operator + this.treeToString2(node.right);
+  if (node.isUnary()) return node.operand;
+  if (node.isNot()) return NOT + this.treeToString2(node.underNode);
+  return this.treeToString2(node.left) + node.operator + this.treeToString2(node.right);
+}
+
+treeToLists(op1,op2) {
+  let strnode = this.treeToString2(this), strop = strnode,str;
+  let orList = [], andList = [];
+
+  while (strnode.indexOf(op1) != -1) {
+    strop = strnode.substring(0,strnode.indexOf(op1));
+    while (strop.indexOf(op2) != -1) {
+      str = strop.substring(0, strop.indexOf(op2))
+      orList.push(str);
+      strop = strop.substring(strop.indexOf(op2)+1, strop.length);
+    }
+    orList.push(strop);
+    strnode = strnode.substring(strnode.indexOf(op1)+1, strnode.length); 
+    andList.push([...orList]);
+    orList = [];
   }
 
-treeToLists(op1,op2){
-  let strnode = this.treeToString2(this),strop = strnode,str;
-  let orList=[],andList=[];
-
-   while(strnode.indexOf(op1)!=-1){
-     strop = strnode.substring(0,strnode.indexOf(op1));
-     while(strop.indexOf(op2)!=-1){
-       str = strop.substring(0,strop.indexOf(op2))
-       orList.push(str);
-       strop = strop.substring(strop.indexOf(op2)+1,strop.length);
-     }
-     orList.push(strop);
-     strnode = strnode.substring(strnode.indexOf(op1)+1,strnode.length); 
-     andList.push([...orList]);
-     orList=[];
-   }
-   strop=strnode;
-   while(strop.indexOf(op2)!=-1){
-     str = strop.substring(0,strop.indexOf(op2))
-     orList.push(str);
-     strop = strop.substring(strop.indexOf(op2)+1,strop.length);
-   }
-   orList.push(strop);
-   andList.push([...orList]);
-   return andList;
+  strop = strnode;
+  while (strop.indexOf(op2) != -1) {
+    str = strop.substring(0, strop.indexOf(op2))
+    orList.push(str);
+    strop = strop.substring(strop.indexOf(op2)+1, strop.length);
+  }
+  orList.push(strop);
+  andList.push([...orList]);
+  return andList;
 }
 
   /**
