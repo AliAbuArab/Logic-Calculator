@@ -1,2 +1,2 @@
 # Logic-Calculator
-[link to webiste](https://logic.telhai.ac.il)
+[link to webiste](http://logic.telhai.ac.il)
